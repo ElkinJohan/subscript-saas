@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":application"))
+    implementation(project(":domain"))
     // Starter para Web Reactiva (WebFlux)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     // Starter para persistencia reactiva (R2DBC)
