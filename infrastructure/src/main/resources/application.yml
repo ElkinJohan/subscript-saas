@@ -1,0 +1,9 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/subscript
+    username: subscript
+    password: subscript
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql

@@ -6,10 +6,9 @@ plugins {
 dependencies {
     implementation(project(":application"))
     implementation(project(":domain"))
-    // Starter para Web Reactiva (WebFlux)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    // Starter para persistencia reactiva (R2DBC)
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    runtimeOnly("org.postgresql:r2dbc-postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
