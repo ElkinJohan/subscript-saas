@@ -3,6 +3,7 @@ package com.ej.subscript.application.usecase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
 import com.ej.subscript.domain.repository.ClientRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -26,5 +27,9 @@ public class ClientUseCase {
                         "No existe un cliente con ID " + clientId)))
                 .map(Client::deactivate)
                 .flatMap(clientRepository::save);
+    }
+
+    public Flux<Client> findByOwnerId(UUID ownerId) {
+        return clientRepository.findByOwnerId(ownerId);
     }
 }

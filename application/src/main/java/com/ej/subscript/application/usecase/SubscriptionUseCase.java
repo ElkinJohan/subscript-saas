@@ -7,6 +7,7 @@ import com.ej.subscript.domain.model.SubscriptionStatus;
 import com.ej.subscript.domain.repository.ClientRepository;
 import com.ej.subscript.domain.repository.PlanRepository;
 import com.ej.subscript.domain.repository.SubscriptionRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -73,5 +74,16 @@ public class SubscriptionUseCase {
                                 "No existe un plan con ID " + sub.planId())))
                         .map(plan -> sub.renew(plan.durationDays())))
                 .flatMap(subscriptionRepository::save);
+    }
+
+    public Flux<Subscription> findByClientId(UUID clientId) {
+        return subscriptionRepository.findByClientId(clientId);
+    }
+
+    public Mono<Subscription> findActiveByClientId(UUID clientId) {
+        return subscriptionRepository.findActiveByClientId(clientId)
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Sin suscripción activa", 404,
+                        "El cliente " + clientId + " no tiene suscripción activa")));
     }
 }

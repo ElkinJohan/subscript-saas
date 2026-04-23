@@ -20,4 +20,10 @@ public class OwnerUseCase {
                         "Ya existe un owner con el email " + owner.email())))
                 .switchIfEmpty(ownerRepository.save(owner));
     }
+
+    public Mono<Owner> findById(String id) {
+        return ownerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Owner no encontrado", 404, "No existe un owner con ID " + id)));
+    }
 }
