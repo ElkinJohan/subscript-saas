@@ -5,16 +5,19 @@ import com.ej.subscript.domain.model.Owner;
 class OwnerMapper {
 
     static OwnerEntity toEntity(Owner owner) {
-        return new OwnerEntity(
+        OwnerEntity e = new OwnerEntity(
                 owner.id(), owner.nit(), owner.name(), owner.email(),
-                owner.phone(), owner.businessName(), owner.gracePeriodDays(), true
+                owner.phone(), owner.businessName(), owner.gracePeriodDays(),
+                owner.passwordHash(), true
         );
+        return e;
     }
 
     static Owner toDomain(OwnerEntity entity) {
         return new Owner(
                 entity.getId(), entity.getNit(), entity.getName(), entity.getEmail(),
-                entity.getPhone(), entity.getBusinessName(), entity.getGracePeriodDays()
+                entity.getPhone(), entity.getBusinessName(), entity.getGracePeriodDays(),
+                entity.getPasswordHash()
         );
     }
 }

@@ -26,5 +26,6 @@ public class OwnerEntity implements Persistable<UUID> {
     private String phone;
     @Column("business_name") private String businessName;
     @Column("grace_period_days") private int gracePeriodDays;
+    @Column("password_hash") private String passwordHash;
     @Transient private boolean isNew;
 }

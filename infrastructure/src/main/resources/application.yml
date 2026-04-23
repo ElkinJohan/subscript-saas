@@ -7,3 +7,10 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+
+# Claves RSA para firmar y verificar tokens JWT.
+# En producción estas claves deben estar fuera del classpath
+# (variables de entorno o un gestor de secretos como AWS Secrets Manager).
+rsa:
+  private-key: classpath:keys/private.pem
+  public-key: classpath:keys/public.pem

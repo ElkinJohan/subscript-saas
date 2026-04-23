@@ -5,6 +5,10 @@ import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.domain.repository.OwnerRepository;
 import reactor.core.publisher.Mono;
 
+/**
+ * Orquesta los casos de uso del Owner.
+ * No contiene lógica de negocio propia — delega al dominio y al repositorio.
+ */
 public class OwnerUseCase {
 
     private final OwnerRepository ownerRepository;
@@ -13,6 +17,7 @@ public class OwnerUseCase {
         this.ownerRepository = ownerRepository;
     }
 
+    /** Registra un nuevo Owner garantizando unicidad de email. */
     public Mono<Owner> register(Owner owner) {
         return ownerRepository.findByEmail(owner.email())
                 .flatMap(existing -> Mono.<Owner>error(new BusinessException(
@@ -21,9 +26,20 @@ public class OwnerUseCase {
                 .switchIfEmpty(ownerRepository.save(owner));
     }
 
+    /** Busca un Owner por ID o emite 404. */
     public Mono<Owner> findById(String id) {
         return ownerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new BusinessException(
                         "Owner no encontrado", 404, "No existe un owner con ID " + id)));
+    }
+
+    /**
+     * Busca un Owner por email o emite 401.
+     * Utilizado exclusivamente en el flujo de autenticación JWT.
+     */
+    public Mono<Owner> findByEmail(String email) {
+        return ownerRepository.findByEmail(email)
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Credenciales inválidas", 401, "Email o contraseña incorrectos")));
     }
 }

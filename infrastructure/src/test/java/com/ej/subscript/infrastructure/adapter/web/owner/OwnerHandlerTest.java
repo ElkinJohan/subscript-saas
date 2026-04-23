@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.HttpHandler;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -28,13 +29,18 @@ class OwnerHandlerTest {
     private OwnerUseCase ownerUseCase;
 
     private static final Owner OWNER = new Owner(
-            UUID.randomUUID(), "900123", "Juan", "juan@gym.com", "300", "GymFit", 3
+            UUID.randomUUID(), "900123", "Juan", "juan@gym.com", "300", "GymFit", 3,
+            "$2a$10$hashedPasswordForTests"
     );
 
     @BeforeEach
     void setUp() {
         ownerUseCase = Mockito.mock(OwnerUseCase.class);
-        var handler = new OwnerHandler(ownerUseCase, Validation.buildDefaultValidatorFactory().getValidator());
+        var handler = new OwnerHandler(
+                ownerUseCase,
+                Validation.buildDefaultValidatorFactory().getValidator(),
+                new BCryptPasswordEncoder()
+        );
         WebExceptionHandler exHandler = (exchange, ex) -> {
             if (ex instanceof BusinessException be)
                 exchange.getResponse().setStatusCode(HttpStatus.valueOf(be.status()));
@@ -54,7 +60,7 @@ class OwnerHandlerTest {
         when(ownerUseCase.register(any())).thenReturn(Mono.just(OWNER));
 
         client.post().uri("/api/owners")
-                .bodyValue(new OwnerRequest("900123", "Juan", "juan@gym.com", "300", "GymFit", 3))
+                .bodyValue(new OwnerRequest("900123", "Juan", "juan@gym.com", "300", "GymFit", 3, "password123"))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(OwnerResponse.class)
@@ -68,7 +74,7 @@ class OwnerHandlerTest {
     @Test
     void shouldReturn400WhenNitIsBlank() {
         client.post().uri("/api/owners")
-                .bodyValue(new OwnerRequest("", "Juan", "juan@gym.com", "300", "GymFit", 3))
+                .bodyValue(new OwnerRequest("", "Juan", "juan@gym.com", "300", "GymFit", 3, "password123"))
                 .exchange()
                 .expectStatus().isBadRequest();
     }
@@ -76,7 +82,7 @@ class OwnerHandlerTest {
     @Test
     void shouldReturn400WhenEmailIsInvalid() {
         client.post().uri("/api/owners")
-                .bodyValue(new OwnerRequest("900123", "Juan", "not-an-email", "300", "GymFit", 3))
+                .bodyValue(new OwnerRequest("900123", "Juan", "not-an-email", "300", "GymFit", 3, "password123"))
                 .exchange()
                 .expectStatus().isBadRequest();
     }
@@ -84,7 +90,15 @@ class OwnerHandlerTest {
     @Test
     void shouldReturn400WhenNameIsBlank() {
         client.post().uri("/api/owners")
-                .bodyValue(new OwnerRequest("900123", "", "juan@gym.com", "300", "GymFit", 3))
+                .bodyValue(new OwnerRequest("900123", "", "juan@gym.com", "300", "GymFit", 3, "password123"))
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void shouldReturn400WhenPasswordIsTooShort() {
+        client.post().uri("/api/owners")
+                .bodyValue(new OwnerRequest("900123", "Juan", "juan@gym.com", "300", "GymFit", 3, "short"))
                 .exchange()
                 .expectStatus().isBadRequest();
     }

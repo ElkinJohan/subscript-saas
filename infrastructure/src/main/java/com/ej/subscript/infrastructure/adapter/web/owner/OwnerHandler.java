@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -21,12 +22,15 @@ public class OwnerHandler {
 
     private final OwnerUseCase ownerUseCase;
     private final Validator validator;
+    private final PasswordEncoder passwordEncoder;
 
     public Mono<ServerResponse> register(ServerRequest request) {
         return request.bodyToMono(OwnerRequest.class)
                 .flatMap(this::validate)
-                .map(req -> Owner.create(req.nit(), req.name(), req.email(),
-                        req.phone(), req.businessName(), req.gracePeriodDays()))
+                .map(req -> Owner.create(
+                        req.nit(), req.name(), req.email(), req.phone(),
+                        req.businessName(), req.gracePeriodDays(),
+                        passwordEncoder.encode(req.password())))
                 .flatMap(ownerUseCase::register)
                 .map(OwnerResponse::from)
                 .flatMap(body -> ServerResponse.status(HttpStatus.CREATED).bodyValue(body));

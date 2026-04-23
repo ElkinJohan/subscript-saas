@@ -5,8 +5,11 @@ CREATE TABLE IF NOT EXISTS owners (
     email           VARCHAR(150) NOT NULL UNIQUE,
     phone           VARCHAR(20),
     business_name   VARCHAR(200),
-    grace_period_days INT        NOT NULL DEFAULT 0
+    grace_period_days INT        NOT NULL DEFAULT 0,
+    password_hash   VARCHAR(100) NOT NULL DEFAULT ''
 );
+-- Agrega la columna a bases de datos existentes (idempotente en PG 9.6+)
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS password_hash VARCHAR(100) NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS clients (
     id       UUID PRIMARY KEY,

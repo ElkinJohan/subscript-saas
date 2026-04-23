@@ -10,7 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OwnerMapperTest {
 
     private static final Owner OWNER = new Owner(
-            UUID.randomUUID(), "900123", "Juan", "juan@test.com", "300", "GymFit", 3
+            UUID.randomUUID(), "900123", "Juan", "juan@test.com", "300", "GymFit", 3,
+            "$2a$10$hashedPasswordForTests"
     );
 
     @Test
@@ -24,6 +25,7 @@ class OwnerMapperTest {
         assertThat(entity.getPhone()).isEqualTo(OWNER.phone());
         assertThat(entity.getBusinessName()).isEqualTo(OWNER.businessName());
         assertThat(entity.getGracePeriodDays()).isEqualTo(OWNER.gracePeriodDays());
+        assertThat(entity.getPasswordHash()).isEqualTo(OWNER.passwordHash());
         assertThat(entity.isNew()).isTrue();
     }
 
@@ -36,6 +38,7 @@ class OwnerMapperTest {
         assertThat(result.nit()).isEqualTo(OWNER.nit());
         assertThat(result.email()).isEqualTo(OWNER.email());
         assertThat(result.businessName()).isEqualTo(OWNER.businessName());
+        assertThat(result.passwordHash()).isEqualTo(OWNER.passwordHash());
     }
 
     @Test

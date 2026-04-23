@@ -22,7 +22,7 @@ class OwnerUseCaseTest {
 
     private static final Owner OWNER = new Owner(
             UUID.randomUUID(), "900123456", "Juan", "juan@gym.com",
-            "300000000", "GymFit", 3
+            "300000000", "GymFit", 3, "$2a$10$hashedPasswordForTests"
     );
 
     @BeforeEach
