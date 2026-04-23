@@ -5,6 +5,7 @@ import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -16,15 +17,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class ClientHandler {
 
     private final ClientUseCase clientUseCase;
     private final Validator validator;
-
-    public ClientHandler(ClientUseCase clientUseCase, Validator validator) {
-        this.clientUseCase = clientUseCase;
-        this.validator = validator;
-    }
 
     public Mono<ServerResponse> register(ServerRequest request) {
         UUID ownerId = UUID.fromString(request.pathVariable("ownerId"));

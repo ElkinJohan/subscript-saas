@@ -2,19 +2,17 @@ package com.ej.subscript.infrastructure.adapter.r2dbc.owner;
 
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.domain.repository.OwnerRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
 @Repository
+@RequiredArgsConstructor
 public class OwnerRepositoryAdapter implements OwnerRepository {
 
     private final OwnerR2dbcRepository r2dbcRepository;
-
-    public OwnerRepositoryAdapter(OwnerR2dbcRepository r2dbcRepository) {
-        this.r2dbcRepository = r2dbcRepository;
-    }
 
     @Override
     public Mono<Owner> save(Owner owner) {

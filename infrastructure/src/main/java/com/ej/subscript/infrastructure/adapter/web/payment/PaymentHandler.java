@@ -4,6 +4,7 @@ import com.ej.subscript.application.usecase.PaymentUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -15,15 +16,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class PaymentHandler {
 
     private final PaymentUseCase paymentUseCase;
     private final Validator validator;
-
-    public PaymentHandler(PaymentUseCase paymentUseCase, Validator validator) {
-        this.paymentUseCase = paymentUseCase;
-        this.validator = validator;
-    }
 
     public Mono<ServerResponse> register(ServerRequest request) {
         return request.bodyToMono(PaymentRequest.class)

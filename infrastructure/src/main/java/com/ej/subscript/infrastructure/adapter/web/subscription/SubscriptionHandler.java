@@ -4,6 +4,7 @@ import com.ej.subscript.application.usecase.SubscriptionUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -15,15 +16,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class SubscriptionHandler {
 
     private final SubscriptionUseCase subscriptionUseCase;
     private final Validator validator;
-
-    public SubscriptionHandler(SubscriptionUseCase subscriptionUseCase, Validator validator) {
-        this.subscriptionUseCase = subscriptionUseCase;
-        this.validator = validator;
-    }
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(SubscriptionRequest.class)

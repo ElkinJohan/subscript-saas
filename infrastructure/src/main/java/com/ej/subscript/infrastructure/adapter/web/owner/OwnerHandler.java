@@ -5,6 +5,7 @@ import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Owner;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -15,15 +16,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class OwnerHandler {
 
     private final OwnerUseCase ownerUseCase;
     private final Validator validator;
-
-    public OwnerHandler(OwnerUseCase ownerUseCase, Validator validator) {
-        this.ownerUseCase = ownerUseCase;
-        this.validator = validator;
-    }
 
     public Mono<ServerResponse> register(ServerRequest request) {
         return request.bodyToMono(OwnerRequest.class)

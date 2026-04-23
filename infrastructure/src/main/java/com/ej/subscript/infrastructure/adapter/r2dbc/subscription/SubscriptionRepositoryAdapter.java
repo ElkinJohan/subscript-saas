@@ -2,6 +2,7 @@ package com.ej.subscript.infrastructure.adapter.r2dbc.subscription;
 
 import com.ej.subscript.domain.model.Subscription;
 import com.ej.subscript.domain.repository.SubscriptionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -9,13 +10,10 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
+@RequiredArgsConstructor
 public class SubscriptionRepositoryAdapter implements SubscriptionRepository {
 
     private final SubscriptionR2dbcRepository r2dbcRepository;
-
-    public SubscriptionRepositoryAdapter(SubscriptionR2dbcRepository r2dbcRepository) {
-        this.r2dbcRepository = r2dbcRepository;
-    }
 
     @Override
     public Mono<Subscription> save(Subscription subscription) {

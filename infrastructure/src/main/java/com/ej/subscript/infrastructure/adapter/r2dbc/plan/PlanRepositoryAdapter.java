@@ -2,6 +2,7 @@ package com.ej.subscript.infrastructure.adapter.r2dbc.plan;
 
 import com.ej.subscript.domain.model.Plan;
 import com.ej.subscript.domain.repository.PlanRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -9,13 +10,10 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
+@RequiredArgsConstructor
 public class PlanRepositoryAdapter implements PlanRepository {
 
     private final PlanR2dbcRepository r2dbcRepository;
-
-    public PlanRepositoryAdapter(PlanR2dbcRepository r2dbcRepository) {
-        this.r2dbcRepository = r2dbcRepository;
-    }
 
     @Override
     public Mono<Plan> save(Plan plan) {

@@ -2,6 +2,7 @@ package com.ej.subscript.infrastructure.adapter.r2dbc.client;
 
 import com.ej.subscript.domain.model.Client;
 import com.ej.subscript.domain.repository.ClientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -9,13 +10,10 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
+@RequiredArgsConstructor
 public class ClientRepositoryAdapter implements ClientRepository {
 
     private final ClientR2dbcRepository r2dbcRepository;
-
-    public ClientRepositoryAdapter(ClientR2dbcRepository r2dbcRepository) {
-        this.r2dbcRepository = r2dbcRepository;
-    }
 
     @Override
     public Mono<Client> save(Client client) {

@@ -21,9 +21,15 @@ subprojects {
 
     java {
         toolchain {
-            // Forzamos el uso de Java 21 en todos los módulos
             languageVersion.set(JavaLanguageVersion.of(21))
         }
+    }
+
+    dependencies {
+        "compileOnly"("org.projectlombok:lombok:1.18.32")
+        "annotationProcessor"("org.projectlombok:lombok:1.18.32")
+        "testCompileOnly"("org.projectlombok:lombok:1.18.32")
+        "testAnnotationProcessor"("org.projectlombok:lombok:1.18.32")
     }
 
     tasks.withType<Test> {

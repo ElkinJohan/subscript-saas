@@ -6,6 +6,7 @@ import com.ej.subscript.domain.model.Money;
 import com.ej.subscript.domain.model.Plan;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -17,15 +18,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class PlanHandler {
 
     private final PlanUseCase planUseCase;
     private final Validator validator;
-
-    public PlanHandler(PlanUseCase planUseCase, Validator validator) {
-        this.planUseCase = planUseCase;
-        this.validator = validator;
-    }
 
     public Mono<ServerResponse> create(ServerRequest request) {
         UUID ownerId = UUID.fromString(request.pathVariable("ownerId"));
