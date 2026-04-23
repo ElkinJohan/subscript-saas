@@ -1,4 +1,4 @@
 dependencies {
     implementation(project(":domain"))
-    implementation("io.projectreactor:reactor-core:3.6.4")
+    // Reactor heredado transitivamente desde domain
 }

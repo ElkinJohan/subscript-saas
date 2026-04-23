@@ -1,4 +1,4 @@
-package com.ej.subscript.infrastructure.adapter.repository;
+package com.ej.subscript.infrastructure.adapter.persistence;
 
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.domain.repository.OwnerRepository;
