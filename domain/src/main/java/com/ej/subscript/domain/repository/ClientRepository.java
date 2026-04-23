@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface ClientRepository {
     Mono<Client> save(Client client);
+    Mono<Client> update(Client client);
     Mono<Client> findById(UUID id);
     Flux<Client> findByOwnerId(UUID ownerId);
 }

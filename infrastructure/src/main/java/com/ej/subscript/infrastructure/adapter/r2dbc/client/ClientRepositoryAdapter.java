@@ -22,6 +22,12 @@ public class ClientRepositoryAdapter implements ClientRepository {
     }
 
     @Override
+    public Mono<Client> update(Client client) {
+        return r2dbcRepository.save(ClientMapper.toEntityForUpdate(client))
+                .map(ClientMapper::toDomain);
+    }
+
+    @Override
     public Mono<Client> findById(UUID id) {
         return r2dbcRepository.findById(id)
                 .map(ClientMapper::toDomain);

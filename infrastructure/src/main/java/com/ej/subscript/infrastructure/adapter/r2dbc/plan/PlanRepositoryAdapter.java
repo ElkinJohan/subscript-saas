@@ -22,6 +22,12 @@ public class PlanRepositoryAdapter implements PlanRepository {
     }
 
     @Override
+    public Mono<Plan> update(Plan plan) {
+        return r2dbcRepository.save(PlanMapper.toEntityForUpdate(plan))
+                .map(PlanMapper::toDomain);
+    }
+
+    @Override
     public Mono<Plan> findById(UUID id) {
         return r2dbcRepository.findById(id)
                 .map(PlanMapper::toDomain);

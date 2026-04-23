@@ -26,7 +26,7 @@ public class PlanUseCase {
                         "Plan no encontrado", 404,
                         "No existe un plan con ID " + planId)))
                 .map(Plan::deactivate)
-                .flatMap(planRepository::save);
+                .flatMap(planRepository::update);
     }
 
     public Flux<Plan> findByOwnerId(UUID ownerId) {

@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface PlanRepository {
     Mono<Plan> save(Plan plan);
+    Mono<Plan> update(Plan plan);
     Mono<Plan> findById(UUID id);
     Flux<Plan> findByOwnerId(UUID ownerId);
 }

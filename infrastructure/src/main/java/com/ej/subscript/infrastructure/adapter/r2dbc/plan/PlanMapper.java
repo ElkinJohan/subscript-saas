@@ -14,6 +14,14 @@ class PlanMapper {
         );
     }
 
+    static PlanEntity toEntityForUpdate(Plan plan) {
+        return new PlanEntity(
+                plan.id(), plan.ownerId(), plan.name(), plan.description(),
+                plan.price().amount(), plan.price().currency(),
+                plan.durationDays(), plan.status().name(), false
+        );
+    }
+
     static Plan toDomain(PlanEntity entity) {
         return new Plan(
                 entity.getId(), entity.getOwnerId(), entity.getName(), entity.getDescription(),

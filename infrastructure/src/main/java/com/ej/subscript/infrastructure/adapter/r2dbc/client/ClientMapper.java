@@ -12,6 +12,13 @@ class ClientMapper {
         );
     }
 
+    static ClientEntity toEntityForUpdate(Client client) {
+        return new ClientEntity(
+                client.id(), client.ownerId(), client.cedula(), client.name(),
+                client.email(), client.phone(), client.status().name(), false
+        );
+    }
+
     static Client toDomain(ClientEntity entity) {
         return new Client(
                 entity.getId(), entity.getOwnerId(), entity.getCedula(), entity.getName(),

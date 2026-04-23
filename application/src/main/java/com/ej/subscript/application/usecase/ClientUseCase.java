@@ -26,7 +26,7 @@ public class ClientUseCase {
                         "Cliente no encontrado", 404,
                         "No existe un cliente con ID " + clientId)))
                 .map(Client::deactivate)
-                .flatMap(clientRepository::save);
+                .flatMap(clientRepository::update);
     }
 
     public Flux<Client> findByOwnerId(UUID ownerId) {
