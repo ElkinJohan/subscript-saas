@@ -12,6 +12,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+/**
+ * Orquesta los casos de uso de Subscription.
+ * Clase Java pura — sin anotaciones de Spring. Bean registrado en {@code BeanConfiguration}.
+ */
 public class SubscriptionUseCase {
 
     private final SubscriptionRepository subscriptionRepository;
@@ -26,6 +30,13 @@ public class SubscriptionUseCase {
         this.planRepository = planRepository;
     }
 
+    /**
+     * Crea una suscripción verificando que cliente y plan existan y que el plan esté activo.
+     *
+     * <p>La validación del cliente ({@code clientExists}) se ejecuta primero con {@code .then()}
+     * para garantizar un 404 descriptivo antes de intentar resolver el plan. Si se encadenaran
+     * en paralelo, el primer error en completar ganaría sin control de orden.
+     */
     public Mono<Subscription> create(UUID clientId, UUID planId) {
         Mono<Void> clientExists = clientRepository.findById(clientId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -49,6 +60,7 @@ public class SubscriptionUseCase {
         return clientExists.then(subscription);
     }
 
+    /** Cancela la suscripción o emite 409 si ya estaba cancelada. */
     public Mono<Subscription> cancel(UUID subscriptionId) {
         return subscriptionRepository.findById(subscriptionId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -63,6 +75,10 @@ public class SubscriptionUseCase {
                 });
     }
 
+    /**
+     * Renueva la suscripción: el nuevo período parte desde el {@code endDate} actual,
+     * manteniendo continuidad. La duración proviene del plan vigente.
+     */
     public Mono<Subscription> renew(UUID subscriptionId) {
         return subscriptionRepository.findById(subscriptionId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -76,10 +92,12 @@ public class SubscriptionUseCase {
                 .flatMap(subscriptionRepository::update);
     }
 
+    /** Retorna todas las suscripciones del cliente, sin filtrar por estado. */
     public Flux<Subscription> findByClientId(UUID clientId) {
         return subscriptionRepository.findByClientId(clientId);
     }
 
+    /** Retorna la suscripción ACTIVE del cliente o emite 404 si no tiene ninguna. */
     public Mono<Subscription> findActiveByClientId(UUID clientId) {
         return subscriptionRepository.findActiveByClientId(clientId)
                 .switchIfEmpty(Mono.error(new BusinessException(

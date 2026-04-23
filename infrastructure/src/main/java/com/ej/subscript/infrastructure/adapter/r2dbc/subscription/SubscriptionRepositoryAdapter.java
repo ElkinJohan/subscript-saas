@@ -9,6 +9,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+/**
+ * Adaptador de salida que implementa {@link SubscriptionRepository} con R2DBC.
+ * Ver {@code ClientRepositoryAdapter} para la explicación del patrón save/update con {@code Persistable}.
+ */
 @Repository
 @RequiredArgsConstructor
 public class SubscriptionRepositoryAdapter implements SubscriptionRepository {

@@ -5,6 +5,14 @@ import com.ej.subscript.domain.repository.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Registra manualmente los use cases como beans de Spring.
+ *
+ * <p>Los use cases son clases Java puras (sin {@code @Component}) para mantener
+ * la capa de aplicación desacoplada del framework. Este archivo es el único punto
+ * donde Spring "conoce" los use cases — si algún día se migra de Spring, solo
+ * hay que cambiar este archivo, no la lógica de negocio.
+ */
 @Configuration
 public class BeanConfiguration {
 

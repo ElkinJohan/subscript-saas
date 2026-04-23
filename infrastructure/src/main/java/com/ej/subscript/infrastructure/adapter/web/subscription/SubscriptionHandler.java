@@ -15,6 +15,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Handler funcional para los endpoints de Subscription.
+ * Adaptador de entrada que traduce el request HTTP al modelo de dominio
+ * y delega al {@link SubscriptionUseCase}.
+ */
 @Component
 @RequiredArgsConstructor
 public class SubscriptionHandler {

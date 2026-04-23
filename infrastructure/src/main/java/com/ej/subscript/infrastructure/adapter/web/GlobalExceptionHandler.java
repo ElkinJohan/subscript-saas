@@ -16,6 +16,20 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
+/**
+ * Manejador global de excepciones para WebFlux.
+ *
+ * <p>{@code @Order(-2)} es obligatorio: Spring registra su propio handler de errores
+ * en el orden -1. Si este handler tuviera un orden mayor (número más alto), nunca
+ * se ejecutaría porque el de Spring tomaría primero la excepción.
+ *
+ * <p>Política de logging:
+ * <ul>
+ *   <li>{@link BusinessException} — no se loguea (flujo esperado del negocio)</li>
+ *   <li>{@link TechnicalException} — {@code ERROR} con stack trace</li>
+ *   <li>Excepciones no mapeadas — {@code ERROR} con método + path</li>
+ * </ul>
+ */
 @Slf4j
 @Component
 @Order(-2)

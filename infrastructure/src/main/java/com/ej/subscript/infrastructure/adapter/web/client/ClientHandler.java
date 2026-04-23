@@ -16,6 +16,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Handler funcional para los endpoints de Client.
+ * Opera como adaptador de entrada (Hexagonal): traduce el request HTTP
+ * al modelo de dominio y delega al {@link ClientUseCase}.
+ */
 @Component
 @RequiredArgsConstructor
 public class ClientHandler {

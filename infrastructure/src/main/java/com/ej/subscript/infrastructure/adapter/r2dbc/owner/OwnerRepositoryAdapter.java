@@ -6,8 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
+/**
+ * Adaptador de salida (Hexagonal Architecture) que implementa {@link OwnerRepository}
+ * usando Spring Data R2DBC. Traduce entre el modelo de dominio ({@link Owner}) y la
+ * entidad de persistencia ({@link OwnerEntity}) mediante {@link OwnerMapper}.
+ */
 @Repository
 @RequiredArgsConstructor
 public class OwnerRepositoryAdapter implements OwnerRepository {
@@ -22,7 +25,7 @@ public class OwnerRepositoryAdapter implements OwnerRepository {
 
     @Override
     public Mono<Owner> findById(String id) {
-        return r2dbcRepository.findById(UUID.fromString(id))
+        return r2dbcRepository.findById(java.util.UUID.fromString(id))
                 .map(OwnerMapper::toDomain);
     }
 

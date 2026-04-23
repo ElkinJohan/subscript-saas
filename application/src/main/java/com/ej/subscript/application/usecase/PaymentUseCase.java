@@ -9,6 +9,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+/**
+ * Orquesta los casos de uso de Payment.
+ * Clase Java pura — sin anotaciones de Spring. Bean registrado en {@code BeanConfiguration}.
+ */
 public class PaymentUseCase {
 
     private final SubscriptionRepository subscriptionRepository;
@@ -20,6 +24,11 @@ public class PaymentUseCase {
         this.paymentRepository = paymentRepository;
     }
 
+    /**
+     * Registra un pago para la suscripción dada.
+     * El monto se toma del precio de la suscripción, no del request HTTP,
+     * para evitar que el cliente manipule el valor a cobrar.
+     */
     public Mono<Payment> register(UUID subscriptionId, UUID registeredBy) {
         return subscriptionRepository.findById(subscriptionId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -29,6 +38,7 @@ public class PaymentUseCase {
                 .flatMap(paymentRepository::save);
     }
 
+    /** Retorna el historial de pagos de una suscripción. */
     public Flux<Payment> findBySubscriptionId(UUID subscriptionId) {
         return paymentRepository.findBySubscriptionId(subscriptionId);
     }

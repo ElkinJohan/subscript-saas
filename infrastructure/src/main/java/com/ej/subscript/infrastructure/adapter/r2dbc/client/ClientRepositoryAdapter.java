@@ -9,6 +9,14 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+/**
+ * Adaptador de salida que implementa {@link ClientRepository} con R2DBC.
+ *
+ * <p>{@code save} usa {@link ClientMapper#toEntity} ({@code isNew=true}) → R2DBC hace INSERT.
+ * {@code update} usa {@link ClientMapper#toEntityForUpdate} ({@code isNew=false}) → R2DBC hace UPDATE.
+ * La distinción es necesaria porque el UUID ya existe en el dominio antes de persistir,
+ * y sin {@code Persistable.isNew()} R2DBC intentaría un UPDATE en un INSERT.
+ */
 @Repository
 @RequiredArgsConstructor
 public class ClientRepositoryAdapter implements ClientRepository {
