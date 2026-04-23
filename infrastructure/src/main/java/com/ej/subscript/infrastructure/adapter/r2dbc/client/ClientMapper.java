@@ -8,14 +8,14 @@ class ClientMapper {
     static ClientEntity toEntity(Client client) {
         return new ClientEntity(
                 client.id(), client.ownerId(), client.cedula(), client.name(),
-                client.email(), client.phone(), client.status().name()
+                client.email(), client.phone(), client.status().name(), true
         );
     }
 
     static Client toDomain(ClientEntity entity) {
         return new Client(
-                entity.id(), entity.ownerId(), entity.cedula(), entity.name(),
-                entity.email(), entity.phone(), ClientStatus.valueOf(entity.status())
+                entity.getId(), entity.getOwnerId(), entity.getCedula(), entity.getName(),
+                entity.getEmail(), entity.getPhone(), ClientStatus.valueOf(entity.getStatus())
         );
     }
 }

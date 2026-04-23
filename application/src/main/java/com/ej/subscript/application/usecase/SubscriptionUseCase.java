@@ -59,7 +59,7 @@ public class SubscriptionUseCase {
                         return Mono.error(new BusinessException(
                                 "Suscripción ya cancelada", 409,
                                 "La suscripción " + subscriptionId + " ya fue cancelada"));
-                    return subscriptionRepository.save(sub.cancel());
+                    return subscriptionRepository.update(sub.cancel());
                 });
     }
 
@@ -73,7 +73,7 @@ public class SubscriptionUseCase {
                                 "Plan no encontrado", 404,
                                 "No existe un plan con ID " + sub.planId())))
                         .map(plan -> sub.renew(plan.durationDays())))
-                .flatMap(subscriptionRepository::save);
+                .flatMap(subscriptionRepository::update);
     }
 
     public Flux<Subscription> findByClientId(UUID clientId) {

@@ -22,6 +22,12 @@ public class SubscriptionRepositoryAdapter implements SubscriptionRepository {
     }
 
     @Override
+    public Mono<Subscription> update(Subscription subscription) {
+        return r2dbcRepository.save(SubscriptionMapper.toEntityForUpdate(subscription))
+                .map(SubscriptionMapper::toDomain);
+    }
+
+    @Override
     public Mono<Subscription> findById(UUID id) {
         return r2dbcRepository.findById(id)
                 .map(SubscriptionMapper::toDomain);

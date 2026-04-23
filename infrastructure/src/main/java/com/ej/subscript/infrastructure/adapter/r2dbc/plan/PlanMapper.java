@@ -10,15 +10,15 @@ class PlanMapper {
         return new PlanEntity(
                 plan.id(), plan.ownerId(), plan.name(), plan.description(),
                 plan.price().amount(), plan.price().currency(),
-                plan.durationDays(), plan.status().name()
+                plan.durationDays(), plan.status().name(), true
         );
     }
 
     static Plan toDomain(PlanEntity entity) {
         return new Plan(
-                entity.id(), entity.ownerId(), entity.name(), entity.description(),
-                new Money(entity.priceAmount(), entity.priceCurrency()),
-                entity.durationDays(), PlanStatus.valueOf(entity.status())
+                entity.getId(), entity.getOwnerId(), entity.getName(), entity.getDescription(),
+                new Money(entity.getPriceAmount(), entity.getPriceCurrency()),
+                entity.getDurationDays(), PlanStatus.valueOf(entity.getStatus())
         );
     }
 }

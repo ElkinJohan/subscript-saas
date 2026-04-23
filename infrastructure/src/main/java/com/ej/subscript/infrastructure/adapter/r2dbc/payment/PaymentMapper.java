@@ -9,15 +9,15 @@ class PaymentMapper {
         return new PaymentEntity(
                 payment.id(), payment.subscriptionId(),
                 payment.amount().amount(), payment.amount().currency(),
-                payment.paidAt(), payment.registeredBy()
+                payment.paidAt(), payment.registeredBy(), true
         );
     }
 
     static Payment toDomain(PaymentEntity entity) {
         return new Payment(
-                entity.id(), entity.subscriptionId(),
-                new Money(entity.amount(), entity.currency()),
-                entity.paidAt(), entity.registeredBy()
+                entity.getId(), entity.getSubscriptionId(),
+                new Money(entity.getAmount(), entity.getCurrency()),
+                entity.getPaidAt(), entity.getRegisteredBy()
         );
     }
 }

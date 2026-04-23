@@ -12,16 +12,25 @@ class SubscriptionMapper {
                 subscription.id(), subscription.clientId(), subscription.planId(),
                 subscription.period().startDate(), subscription.period().endDate(),
                 subscription.status().name(),
-                subscription.price().amount(), subscription.price().currency()
+                subscription.price().amount(), subscription.price().currency(), true
+        );
+    }
+
+    static SubscriptionEntity toEntityForUpdate(Subscription subscription) {
+        return new SubscriptionEntity(
+                subscription.id(), subscription.clientId(), subscription.planId(),
+                subscription.period().startDate(), subscription.period().endDate(),
+                subscription.status().name(),
+                subscription.price().amount(), subscription.price().currency(), false
         );
     }
 
     static Subscription toDomain(SubscriptionEntity entity) {
         return new Subscription(
-                entity.id(), entity.clientId(), entity.planId(),
-                new SubscriptionPeriod(entity.startDate(), entity.endDate()),
-                SubscriptionStatus.valueOf(entity.status()),
-                new Money(entity.priceAmount(), entity.priceCurrency())
+                entity.getId(), entity.getClientId(), entity.getPlanId(),
+                new SubscriptionPeriod(entity.getStartDate(), entity.getEndDate()),
+                SubscriptionStatus.valueOf(entity.getStatus()),
+                new Money(entity.getPriceAmount(), entity.getPriceCurrency())
         );
     }
 }

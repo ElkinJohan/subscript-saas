@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface SubscriptionRepository {
     Mono<Subscription> save(Subscription subscription);
+    Mono<Subscription> update(Subscription subscription);
     Mono<Subscription> findById(UUID id);
     Flux<Subscription> findByClientId(UUID clientId);
     Mono<Subscription> findActiveByClientId(UUID clientId);
