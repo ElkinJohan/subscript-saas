@@ -1,5 +1,7 @@
 package com.ej.subscript.domain.model;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import java.util.UUID;
 
 /**
@@ -20,13 +22,13 @@ public record Owner(
 ) {
     public Owner {
         if (nit == null || nit.isBlank())
-            throw new IllegalArgumentException("El NIT es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El NIT es obligatorio");
         if (name == null || name.isBlank())
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El nombre es obligatorio");
         if (email == null || email.isBlank())
-            throw new IllegalArgumentException("El email es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El email es obligatorio");
         if (gracePeriodDays < 0)
-            throw new IllegalArgumentException("El período de gracia no puede ser negativo");
+            throw new BusinessException("Datos inválidos", 422, "El período de gracia no puede ser negativo");
     }
 
     public static Owner create(String nit, String name, String email,

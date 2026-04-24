@@ -1,5 +1,7 @@
 package com.ej.subscript.domain.model;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import java.util.UUID;
 
 /**
@@ -18,15 +20,15 @@ public record Plan(
 ) {
     public Plan {
         if (ownerId == null)
-            throw new IllegalArgumentException("El ownerId es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El ownerId es obligatorio");
         if (name == null || name.isBlank())
-            throw new IllegalArgumentException("El nombre del plan es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El nombre del plan es obligatorio");
         if (price == null)
-            throw new IllegalArgumentException("El precio es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El precio es obligatorio");
         if (durationDays <= 0)
-            throw new IllegalArgumentException("La duración debe ser mayor a cero");
+            throw new BusinessException("Datos inválidos", 422, "La duración debe ser mayor a cero");
         if (status == null)
-            throw new IllegalArgumentException("El estado es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
     }
 
     /** Crea un nuevo plan con estado ACTIVE. */

@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -74,18 +76,18 @@ class SubscriptionTest {
     @Test
     void shouldThrowWhenClientIdIsNull() {
         assertThatThrownBy(() -> Subscription.create(null, PLAN_ID, PRICE, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenPlanIdIsNull() {
         assertThatThrownBy(() -> Subscription.create(CLIENT_ID, null, PRICE, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenPriceIsNull() {
         assertThatThrownBy(() -> Subscription.create(CLIENT_ID, PLAN_ID, null, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }

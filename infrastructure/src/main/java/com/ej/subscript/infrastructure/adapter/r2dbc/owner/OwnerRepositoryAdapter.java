@@ -34,4 +34,9 @@ public class OwnerRepositoryAdapter implements OwnerRepository {
         return r2dbcRepository.findByEmail(email)
                 .map(OwnerMapper::toDomain);
     }
+
+    @Override
+    public Mono<Void> deleteById(String id) {
+        return r2dbcRepository.deleteById(java.util.UUID.fromString(id));
+    }
 }

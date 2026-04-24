@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -63,24 +65,24 @@ class PlanTest {
     @Test
     void shouldThrowWhenOwnerIdIsNull() {
         assertThatThrownBy(() -> Plan.create(null, "Mensual", "desc", PRICE, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenNameIsBlank() {
         assertThatThrownBy(() -> Plan.create(OWNER_ID, "  ", "desc", PRICE, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenPriceIsNull() {
         assertThatThrownBy(() -> Plan.create(OWNER_ID, "Mensual", "desc", null, 30))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenDurationIsZero() {
         assertThatThrownBy(() -> Plan.create(OWNER_ID, "Mensual", "desc", PRICE, 0))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }

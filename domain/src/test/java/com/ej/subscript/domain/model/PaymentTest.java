@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -28,18 +30,18 @@ class PaymentTest {
     @Test
     void shouldThrowWhenSubscriptionIdIsNull() {
         assertThatThrownBy(() -> Payment.register(null, AMOUNT, REGISTERED_BY))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenAmountIsNull() {
         assertThatThrownBy(() -> Payment.register(SUBSCRIPTION_ID, null, REGISTERED_BY))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenRegisteredByIsNull() {
         assertThatThrownBy(() -> Payment.register(SUBSCRIPTION_ID, AMOUNT, null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }

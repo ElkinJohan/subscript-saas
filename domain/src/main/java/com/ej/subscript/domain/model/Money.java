@@ -1,5 +1,7 @@
 package com.ej.subscript.domain.model;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import java.math.BigDecimal;
 
 /**
@@ -11,9 +13,9 @@ public record Money(BigDecimal amount, String currency) {
 
     public Money {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0)
-            throw new IllegalArgumentException("El monto no puede ser negativo");
+            throw new BusinessException("Datos inválidos", 422, "El monto no puede ser negativo");
         if (currency == null || currency.isBlank())
-            throw new IllegalArgumentException("La moneda es obligatoria");
+            throw new BusinessException("Datos inválidos", 422, "La moneda es obligatoria");
     }
 
     /** Factory para pesos colombianos (COP). */

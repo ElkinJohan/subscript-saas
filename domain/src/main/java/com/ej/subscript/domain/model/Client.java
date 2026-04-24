@@ -1,5 +1,7 @@
 package com.ej.subscript.domain.model;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import java.util.UUID;
 
 /**
@@ -18,15 +20,15 @@ public record Client(
 ) {
     public Client {
         if (ownerId == null)
-            throw new IllegalArgumentException("El ownerId es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El ownerId es obligatorio");
         if (cedula == null || cedula.isBlank())
-            throw new IllegalArgumentException("La cédula es obligatoria");
+            throw new BusinessException("Datos inválidos", 422, "La cédula es obligatoria");
         if (name == null || name.isBlank())
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El nombre es obligatorio");
         if (email == null || email.isBlank())
-            throw new IllegalArgumentException("El email es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El email es obligatorio");
         if (status == null)
-            throw new IllegalArgumentException("El estado es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
     }
 
     /** Crea un nuevo cliente con estado ACTIVE. */

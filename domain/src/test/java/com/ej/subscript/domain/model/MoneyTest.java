@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -28,24 +30,24 @@ class MoneyTest {
     @Test
     void shouldThrowWhenAmountIsNull() {
         assertThatThrownBy(() -> new Money(null, "COP"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenAmountIsNegative() {
         assertThatThrownBy(() -> new Money(new BigDecimal("-1"), "COP"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenCurrencyIsNull() {
         assertThatThrownBy(() -> new Money(new BigDecimal("1000"), null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenCurrencyIsBlank() {
         assertThatThrownBy(() -> new Money(new BigDecimal("1000"), "  "))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -61,24 +63,24 @@ class ClientTest {
     @Test
     void shouldThrowWhenOwnerIdIsNull() {
         assertThatThrownBy(() -> Client.create(null, "123456789", "Juan Pérez", "juan@email.com", null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenCedulaIsBlank() {
         assertThatThrownBy(() -> Client.create(OWNER_ID, "  ", "Juan Pérez", "juan@email.com", null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenNameIsBlank() {
         assertThatThrownBy(() -> Client.create(OWNER_ID, "123456789", "  ", "juan@email.com", null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
     void shouldThrowWhenEmailIsBlank() {
         assertThatThrownBy(() -> Client.create(OWNER_ID, "123456789", "Juan Pérez", "  ", null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 }

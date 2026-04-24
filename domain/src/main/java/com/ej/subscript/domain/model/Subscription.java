@@ -1,5 +1,7 @@
 package com.ej.subscript.domain.model;
 
+import com.ej.subscript.domain.exception.BusinessException;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -19,15 +21,15 @@ public record Subscription(
 ) {
     public Subscription {
         if (clientId == null)
-            throw new IllegalArgumentException("El clientId es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El clientId es obligatorio");
         if (planId == null)
-            throw new IllegalArgumentException("El planId es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El planId es obligatorio");
         if (period == null)
-            throw new IllegalArgumentException("El período es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El período es obligatorio");
         if (status == null)
-            throw new IllegalArgumentException("El estado es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
         if (price == null)
-            throw new IllegalArgumentException("El precio es obligatorio");
+            throw new BusinessException("Datos inválidos", 422, "El precio es obligatorio");
     }
 
     /** Crea una suscripción ACTIVE con el período iniciando hoy. */

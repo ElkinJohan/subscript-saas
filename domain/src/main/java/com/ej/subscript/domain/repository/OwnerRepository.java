@@ -18,4 +18,7 @@ public interface OwnerRepository {
 
     /** Busca por email; emite vacío si no existe. Usado para validar unicidad y para login. */
     Mono<Owner> findByEmail(String email);
+
+    /** Elimina el Owner por ID. Emite vacío al completar. */
+    Mono<Void> deleteById(String id);
 }
