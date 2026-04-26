@@ -3,17 +3,22 @@ package com.ej.subscript.infrastructure.adapter.web.auth;
 import com.ej.subscript.application.usecase.OwnerUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.infrastructure.security.JwtService;
+import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +48,7 @@ public class AuthHandler {
     private final PasswordEncoder passwordEncoder;
     private final Validator validator;
     private final ReactiveJwtDecoder jwtDecoder;
+    private final TokenBlacklist tokenBlacklist;
 
     public Mono<ServerResponse> login(ServerRequest request) {
         return request.bodyToMono(LoginRequest.class)
@@ -87,6 +93,43 @@ public class AuthHandler {
                         jwtService.generateRefreshToken(owner)
                 ))
                 .flatMap(body -> ServerResponse.ok().bodyValue(body));
+    }
+
+    /**
+     * Cierra la sesión revocando access token (del header) y refresh token (del body).
+     * <p>
+     * Cada token se persiste en la blacklist con TTL igual a su tiempo restante de vida,
+     * de modo que Redis libera la memoria automáticamente al expirar el JWT original.
+     * El access token sale del {@link JwtAuthenticationToken} ya validado por el filtro
+     * de Spring Security, por eso este endpoint requiere autenticación.
+     */
+    public Mono<ServerResponse> logout(ServerRequest request) {
+        Mono<RefreshRequest> body = request.bodyToMono(RefreshRequest.class)
+                .flatMap(this::validate);
+        Mono<Jwt> accessJwt = request.principal()
+                .cast(JwtAuthenticationToken.class)
+                .map(JwtAuthenticationToken::getToken);
+
+        return Mono.zip(accessJwt, body)
+                .flatMap(tuple -> blacklistAccess(tuple.getT1())
+                        .then(blacklistRefresh(tuple.getT2().refreshToken())))
+                .then(ServerResponse.noContent().build());
+    }
+
+    private Mono<Void> blacklistAccess(Jwt jwt) {
+        return tokenBlacklist.blacklist(jwt.getId(), remaining(jwt.getExpiresAt()));
+    }
+
+    private Mono<Void> blacklistRefresh(String token) {
+        return jwtDecoder.decode(token)
+                .onErrorResume(JwtException.class, e -> Mono.empty())
+                .flatMap(jwt -> tokenBlacklist.blacklist(jwt.getId(), remaining(jwt.getExpiresAt())));
+    }
+
+    private static Duration remaining(Instant expiresAt) {
+        if (expiresAt == null) return Duration.ZERO;
+        Duration delta = Duration.between(Instant.now(), expiresAt);
+        return delta.isNegative() ? Duration.ZERO : delta;
     }
 
     private <T> Mono<T> validate(T body) {

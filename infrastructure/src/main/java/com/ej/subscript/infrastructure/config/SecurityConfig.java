@@ -1,5 +1,7 @@
 package com.ej.subscript.infrastructure.config;
 
+import com.ej.subscript.infrastructure.security.BlacklistAwareJwtDecoder;
+import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -53,7 +55,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth -> auth
                         .pathMatchers(HttpMethod.POST, "/api/owners").permitAll()
-                        .pathMatchers("/api/auth/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/refresh").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -67,12 +69,14 @@ public class SecurityConfig {
     }
 
     /**
-     * Verifica la firma de los tokens entrantes usando la clave pública RSA.
+     * Verifica la firma de los tokens entrantes usando la clave pública RSA
+     * y consulta la {@link TokenBlacklist} para rechazar tokens revocados.
      * Solo necesita la clave pública — nunca expone la privada.
      */
     @Bean
-    public ReactiveJwtDecoder jwtDecoder(RsaKeyProperties keys) {
-        return NimbusReactiveJwtDecoder.withPublicKey(keys.publicKey()).build();
+    public ReactiveJwtDecoder jwtDecoder(RsaKeyProperties keys, TokenBlacklist blacklist) {
+        ReactiveJwtDecoder nimbus = NimbusReactiveJwtDecoder.withPublicKey(keys.publicKey()).build();
+        return new BlacklistAwareJwtDecoder(nimbus, blacklist);
     }
 
     /**

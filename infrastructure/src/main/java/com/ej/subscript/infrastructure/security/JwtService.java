@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 /**
  * Genera tokens JWT firmados con la clave privada RSA del servidor.
@@ -37,6 +38,7 @@ public class JwtService {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plus(ACCESS_TOKEN_MINUTES, ChronoUnit.MINUTES))
                 .subject(owner.id().toString())
@@ -50,6 +52,7 @@ public class JwtService {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plus(REFRESH_TOKEN_DAYS, ChronoUnit.DAYS))
                 .subject(owner.id().toString())
