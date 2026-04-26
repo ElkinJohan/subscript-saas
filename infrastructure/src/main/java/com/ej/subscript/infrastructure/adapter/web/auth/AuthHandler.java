@@ -7,6 +7,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -33,10 +35,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthHandler {
 
+    private static final String REFRESH_CLAIM = "type";
+    private static final String REFRESH_VALUE = "refresh";
+
     private final OwnerUseCase ownerUseCase;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final Validator validator;
+    private final ReactiveJwtDecoder jwtDecoder;
 
     public Mono<ServerResponse> login(ServerRequest request) {
         return request.bodyToMono(LoginRequest.class)
@@ -46,6 +52,36 @@ public class AuthHandler {
                         .switchIfEmpty(Mono.error(new BusinessException(
                                 "Credenciales inválidas", 401, "Email o contraseña incorrectos")))
                 )
+                .map(owner -> new TokenResponse(
+                        jwtService.generateAccessToken(owner),
+                        jwtService.generateRefreshToken(owner)
+                ))
+                .flatMap(body -> ServerResponse.ok().bodyValue(body));
+    }
+
+    /**
+     * Renueva el par de tokens a partir de un refresh token válido.
+     * <p>
+     * El refresh token debe llevar el claim {@code type=refresh} — un access token
+     * NO sirve para refrescar (defensa en profundidad contra abuso de scope).
+     * Cualquier fallo (firma inválida, expirado, claim faltante, owner borrado)
+     * devuelve 401 genérico para no filtrar información al atacante.
+     */
+    public Mono<ServerResponse> refresh(ServerRequest request) {
+        return request.bodyToMono(RefreshRequest.class)
+                .flatMap(this::validate)
+                .flatMap(req -> jwtDecoder.decode(req.refreshToken()))
+                .onErrorMap(JwtException.class, e -> new BusinessException(
+                        "Token inválido", 401, "Refresh token inválido o expirado"))
+                .flatMap(jwt -> {
+                    if (!REFRESH_VALUE.equals(jwt.getClaimAsString(REFRESH_CLAIM))) {
+                        return Mono.error(new BusinessException(
+                                "Token inválido", 401, "El token recibido no es un refresh token"));
+                    }
+                    return ownerUseCase.findById(jwt.getSubject())
+                            .onErrorMap(BusinessException.class, e -> new BusinessException(
+                                    "Token inválido", 401, "Refresh token inválido o expirado"));
+                })
                 .map(owner -> new TokenResponse(
                         jwtService.generateAccessToken(owner),
                         jwtService.generateRefreshToken(owner)
