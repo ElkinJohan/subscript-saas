@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -214,7 +215,7 @@ class AuthHandlerTest {
 
         ServerRequest request = Mockito.mock(ServerRequest.class);
         when(request.bodyToMono(RefreshRequest.class)).thenReturn(Mono.just(new RefreshRequest("refresh-jwt")));
-        when(request.principal()).thenReturn(Mono.just(new JwtAuthenticationToken(accessJwt)));
+        doReturn(Mono.just(new JwtAuthenticationToken(accessJwt))).when(request).principal();
         when(jwtDecoder.decode("refresh-jwt")).thenReturn(Mono.just(refreshJwt));
         when(tokenBlacklist.blacklist(anyString(), any(Duration.class))).thenReturn(Mono.empty());
 
@@ -234,7 +235,7 @@ class AuthHandlerTest {
 
         ServerRequest request = Mockito.mock(ServerRequest.class);
         when(request.bodyToMono(RefreshRequest.class)).thenReturn(Mono.just(new RefreshRequest("garbage")));
-        when(request.principal()).thenReturn(Mono.just(new JwtAuthenticationToken(accessJwt)));
+        doReturn(Mono.just(new JwtAuthenticationToken(accessJwt))).when(request).principal();
         when(jwtDecoder.decode("garbage")).thenReturn(Mono.error(new BadJwtException("malformed")));
         when(tokenBlacklist.blacklist(anyString(), any(Duration.class))).thenReturn(Mono.empty());
 
