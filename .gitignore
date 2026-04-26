@@ -35,3 +35,20 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Secrets / RSA keys ###
+*.pem
+*.key
+*.p12
+*.jks
+.env
+.env.*
+!.env.example
+
+### Local overrides ###
+application-local.yml
+application-local.properties
+
+### Logs ###
+*.log
+logs/
