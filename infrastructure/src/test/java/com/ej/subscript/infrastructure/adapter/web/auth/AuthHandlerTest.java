@@ -4,9 +4,11 @@ import com.ej.subscript.application.usecase.OwnerUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.infrastructure.security.JwtService;
+import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.HttpHandler;
@@ -14,19 +16,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.WebExceptionHandler;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AuthHandlerTest {
@@ -38,10 +50,12 @@ class AuthHandlerTest {
     );
 
     private WebTestClient client;
+    private AuthHandler handler;
     private OwnerUseCase ownerUseCase;
     private JwtService jwtService;
     private PasswordEncoder passwordEncoder;
     private ReactiveJwtDecoder jwtDecoder;
+    private TokenBlacklist tokenBlacklist;
 
     @BeforeEach
     void setUp() {
@@ -49,13 +63,15 @@ class AuthHandlerTest {
         jwtService = Mockito.mock(JwtService.class);
         passwordEncoder = Mockito.mock(PasswordEncoder.class);
         jwtDecoder = Mockito.mock(ReactiveJwtDecoder.class);
+        tokenBlacklist = Mockito.mock(TokenBlacklist.class);
 
-        var handler = new AuthHandler(
+        handler = new AuthHandler(
                 ownerUseCase,
                 jwtService,
                 passwordEncoder,
                 Validation.buildDefaultValidatorFactory().getValidator(),
-                jwtDecoder
+                jwtDecoder,
+                tokenBlacklist
         );
         WebExceptionHandler exHandler = (exchange, ex) -> {
             if (ex instanceof BusinessException be)
@@ -188,10 +204,58 @@ class AuthHandlerTest {
                 .expectStatus().isBadRequest();
     }
 
+    // --- Logout ----------------------------------------------------------
+
+    @Test
+    void shouldBlacklistBothTokensOnLogout() {
+        String accessJti = UUID.randomUUID().toString();
+        String refreshJti = UUID.randomUUID().toString();
+        Jwt accessJwt = jwt(accessJti, OWNER_ID.toString(), Map.of("email", OWNER.email()));
+        Jwt refreshJwt = jwt(refreshJti, OWNER_ID.toString(), Map.of("type", "refresh"));
+
+        ServerRequest request = Mockito.mock(ServerRequest.class);
+        when(request.bodyToMono(RefreshRequest.class)).thenReturn(Mono.just(new RefreshRequest("refresh-jwt")));
+        doReturn(Mono.just(new JwtAuthenticationToken(accessJwt))).when(request).principal();
+        when(jwtDecoder.decode("refresh-jwt")).thenReturn(Mono.just(refreshJwt));
+        when(tokenBlacklist.blacklist(anyString(), any(Duration.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(handler.logout(request))
+                .assertNext(response -> assertThat(response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT))
+                .verifyComplete();
+
+        ArgumentCaptor<String> jtiCaptor = ArgumentCaptor.forClass(String.class);
+        verify(tokenBlacklist, Mockito.times(2)).blacklist(jtiCaptor.capture(), any(Duration.class));
+        assertThat(jtiCaptor.getAllValues()).containsExactlyInAnyOrder(accessJti, refreshJti);
+    }
+
+    @Test
+    void shouldStillBlacklistAccessTokenWhenRefreshTokenIsInvalid() {
+        String accessJti = UUID.randomUUID().toString();
+        Jwt accessJwt = jwt(accessJti, OWNER_ID.toString(), Map.of());
+
+        ServerRequest request = Mockito.mock(ServerRequest.class);
+        when(request.bodyToMono(RefreshRequest.class)).thenReturn(Mono.just(new RefreshRequest("garbage")));
+        doReturn(Mono.just(new JwtAuthenticationToken(accessJwt))).when(request).principal();
+        when(jwtDecoder.decode("garbage")).thenReturn(Mono.error(new BadJwtException("malformed")));
+        when(tokenBlacklist.blacklist(anyString(), any(Duration.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(handler.logout(request))
+                .assertNext(response -> assertThat(response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT))
+                .verifyComplete();
+
+        verify(tokenBlacklist).blacklist(eq(accessJti), any(Duration.class));
+        verify(tokenBlacklist, never()).blacklist(eq("garbage"), any(Duration.class));
+    }
+
     private static Jwt jwt(String subject, Map<String, Object> extraClaims) {
+        return jwt(UUID.randomUUID().toString(), subject, extraClaims);
+    }
+
+    private static Jwt jwt(String jti, String subject, Map<String, Object> extraClaims) {
         Instant now = Instant.now();
         Jwt.Builder builder = Jwt.withTokenValue("token-value")
                 .header("alg", "RS256")
+                .jti(jti)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(60))
                 .subject(subject);

@@ -14,6 +14,7 @@ public class AuthRouter {
         return RouterFunctions.route()
                 .POST("/api/auth/login", handler::login)
                 .POST("/api/auth/refresh", handler::refresh)
+                .POST("/api/auth/logout", handler::logout)
                 .build();
     }
 }
