@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test (JDK 21)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Generate dev RSA keys (CI only)
+        run: |
+          mkdir -p infrastructure/src/main/resources/keys
+          openssl genrsa -out infrastructure/src/main/resources/keys/private.pem 2048
+          openssl rsa -in infrastructure/src/main/resources/keys/private.pem \
+            -pubout -out infrastructure/src/main/resources/keys/public.pem
+
+      - name: Build & test
+        run: ./gradlew clean build --no-daemon --stacktrace
+
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          retention-days: 7
