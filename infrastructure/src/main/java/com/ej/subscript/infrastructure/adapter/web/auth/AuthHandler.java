@@ -1,7 +1,11 @@
 package com.ej.subscript.infrastructure.adapter.web.auth;
 
 import com.ej.subscript.application.usecase.OwnerUseCase;
+import com.ej.subscript.domain.audit.AuditEvent;
+import com.ej.subscript.domain.audit.AuditEventType;
+import com.ej.subscript.domain.audit.AuditLog;
 import com.ej.subscript.domain.exception.BusinessException;
+import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.infrastructure.security.JwtService;
 import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import jakarta.validation.ConstraintViolation;
@@ -19,6 +23,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +54,7 @@ public class AuthHandler {
     private final Validator validator;
     private final ReactiveJwtDecoder jwtDecoder;
     private final TokenBlacklist tokenBlacklist;
+    private final AuditLog auditLog;
 
     public Mono<ServerResponse> login(ServerRequest request) {
         return request.bodyToMono(LoginRequest.class)
@@ -58,10 +64,7 @@ public class AuthHandler {
                         .switchIfEmpty(Mono.error(new BusinessException(
                                 "Credenciales inválidas", 401, "Email o contraseña incorrectos")))
                 )
-                .map(owner -> new TokenResponse(
-                        jwtService.generateAccessToken(owner),
-                        jwtService.generateRefreshToken(owner)
-                ))
+                .flatMap(owner -> auditAndIssue(owner, AuditEventType.AUTH_LOGIN_SUCCESS))
                 .flatMap(body -> ServerResponse.ok().bodyValue(body));
     }
 
@@ -88,10 +91,7 @@ public class AuthHandler {
                             .onErrorMap(BusinessException.class, e -> new BusinessException(
                                     "Token inválido", 401, "Refresh token inválido o expirado"));
                 })
-                .map(owner -> new TokenResponse(
-                        jwtService.generateAccessToken(owner),
-                        jwtService.generateRefreshToken(owner)
-                ))
+                .flatMap(owner -> auditAndIssue(owner, AuditEventType.AUTH_TOKEN_REFRESHED))
                 .flatMap(body -> ServerResponse.ok().bodyValue(body));
     }
 
@@ -112,8 +112,29 @@ public class AuthHandler {
 
         return Mono.zip(accessJwt, body)
                 .flatMap(tuple -> blacklistAccess(tuple.getT1())
-                        .then(blacklistRefresh(tuple.getT2().refreshToken())))
+                        .then(blacklistRefresh(tuple.getT2().refreshToken()))
+                        .then(auditLog.record(AuditEvent.of(
+                                AuditEventType.AUTH_LOGOUT,
+                                ownerIdOf(tuple.getT1()),
+                                Map.of()))))
                 .then(ServerResponse.noContent().build());
+    }
+
+    private Mono<TokenResponse> auditAndIssue(Owner owner, AuditEventType type) {
+        TokenResponse tokens = new TokenResponse(
+                jwtService.generateAccessToken(owner),
+                jwtService.generateRefreshToken(owner)
+        );
+        AuditEvent event = AuditEvent.of(type, owner.id(), Map.of("email", owner.email()));
+        return auditLog.record(event).thenReturn(tokens);
+    }
+
+    private static java.util.UUID ownerIdOf(Jwt jwt) {
+        try {
+            return java.util.UUID.fromString(jwt.getSubject());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Mono<Void> blacklistAccess(Jwt jwt) {
