@@ -15,7 +15,7 @@ import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
-import static assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @DataR2dbcTest
