@@ -12,6 +12,8 @@ spring:
       host: localhost
       port: 6379
       timeout: 2s
+    mongodb:
+      uri: mongodb://subscript:subscript@localhost:27017/subscript?authSource=admin
 
 # Claves RSA para firmar y verificar tokens JWT.
 # En producción estas claves deben estar fuera del classpath

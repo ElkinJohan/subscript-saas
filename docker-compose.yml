@@ -30,6 +30,24 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo:
+    image: mongo:7
+    container_name: subscript-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: subscript
+      MONGO_INITDB_ROOT_PASSWORD: subscript
+      MONGO_INITDB_DATABASE: subscript
+    ports:
+      - "27017:27017"
+    volumes:
+      - subscript_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   subscript_data:
   subscript_redis_data:
+  subscript_mongo_data:

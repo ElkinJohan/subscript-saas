@@ -1,6 +1,9 @@
 package com.ej.subscript.infrastructure.adapter.web.auth;
 
 import com.ej.subscript.application.usecase.OwnerUseCase;
+import com.ej.subscript.domain.audit.AuditEvent;
+import com.ej.subscript.domain.audit.AuditEventType;
+import com.ej.subscript.domain.audit.AuditLog;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.infrastructure.security.JwtService;
@@ -56,6 +59,7 @@ class AuthHandlerTest {
     private PasswordEncoder passwordEncoder;
     private ReactiveJwtDecoder jwtDecoder;
     private TokenBlacklist tokenBlacklist;
+    private AuditLog auditLog;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +68,8 @@ class AuthHandlerTest {
         passwordEncoder = Mockito.mock(PasswordEncoder.class);
         jwtDecoder = Mockito.mock(ReactiveJwtDecoder.class);
         tokenBlacklist = Mockito.mock(TokenBlacklist.class);
+        auditLog = Mockito.mock(AuditLog.class);
+        when(auditLog.record(any(AuditEvent.class))).thenReturn(Mono.empty());
 
         handler = new AuthHandler(
                 ownerUseCase,
@@ -71,7 +77,8 @@ class AuthHandlerTest {
                 passwordEncoder,
                 Validation.buildDefaultValidatorFactory().getValidator(),
                 jwtDecoder,
-                tokenBlacklist
+                tokenBlacklist,
+                auditLog
         );
         WebExceptionHandler exHandler = (exchange, ex) -> {
             if (ex instanceof BusinessException be)
@@ -105,6 +112,26 @@ class AuthHandlerTest {
                     assertThat(body.accessToken()).isEqualTo("access-jwt");
                     assertThat(body.refreshToken()).isEqualTo("refresh-jwt");
                 });
+    }
+
+    @Test
+    void shouldAuditSuccessfulLogin() {
+        when(ownerUseCase.findByEmail(OWNER.email())).thenReturn(Mono.just(OWNER));
+        when(passwordEncoder.matches("password123", OWNER.passwordHash())).thenReturn(true);
+        when(jwtService.generateAccessToken(OWNER)).thenReturn("access-jwt");
+        when(jwtService.generateRefreshToken(OWNER)).thenReturn("refresh-jwt");
+
+        client.post().uri("/api/auth/login")
+                .bodyValue(new LoginRequest(OWNER.email(), "password123"))
+                .exchange()
+                .expectStatus().isOk();
+
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditLog).record(captor.capture());
+        AuditEvent event = captor.getValue();
+        assertThat(event.type()).isEqualTo(AuditEventType.AUTH_LOGIN_SUCCESS);
+        assertThat(event.ownerId()).isEqualTo(OWNER_ID);
+        assertThat(event.data()).containsEntry("email", OWNER.email());
     }
 
     @Test
