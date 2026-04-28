@@ -12,9 +12,13 @@ import java.util.UUID;
  */
 public interface PaymentRepository {
 
-    /** Registra un nuevo pago (INSERT). */
+    /**
+     * Registra un nuevo pago (INSERT).
+     */
     Mono<Payment> save(Payment payment);
 
-    /** Retorna el historial de pagos de una suscripción, ordenado por fecha descendente en la implementación. */
+    /**
+     * Retorna el historial de pagos de una suscripción, ordenado por fecha descendente en la implementación.
+     */
     Flux<Payment> findBySubscriptionId(UUID subscriptionId);
 }

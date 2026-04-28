@@ -31,17 +31,23 @@ public record Client(
             throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
     }
 
-    /** Crea un nuevo cliente con estado ACTIVE. */
+    /**
+     * Crea un nuevo cliente con estado ACTIVE.
+     */
     public static Client create(UUID ownerId, String cedula, String name, String email, String phone) {
         return new Client(UUID.randomUUID(), ownerId, cedula, name, email, phone, ClientStatus.ACTIVE);
     }
 
-    /** Retorna una nueva instancia con estado INACTIVE. No muta el receptor. */
+    /**
+     * Retorna una nueva instancia con estado INACTIVE. No muta el receptor.
+     */
     public Client deactivate() {
         return new Client(id, ownerId, cedula, name, email, phone, ClientStatus.INACTIVE);
     }
 
-    /** Retorna una nueva instancia con estado ACTIVE. */
+    /**
+     * Retorna una nueva instancia con estado ACTIVE.
+     */
     public Client activate() {
         return new Client(id, ownerId, cedula, name, email, phone, ClientStatus.ACTIVE);
     }

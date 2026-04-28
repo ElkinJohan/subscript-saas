@@ -8,4 +8,5 @@ public record ClientRequest(
         @NotBlank String name,
         @NotBlank @Email String email,
         String phone
-) {}
+) {
+}

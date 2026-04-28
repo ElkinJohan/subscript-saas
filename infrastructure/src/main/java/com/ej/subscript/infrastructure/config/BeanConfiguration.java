@@ -33,14 +33,14 @@ public class BeanConfiguration {
 
     @Bean
     public SubscriptionUseCase subscriptionUseCase(SubscriptionRepository subscriptionRepository,
-                                                    ClientRepository clientRepository,
-                                                    PlanRepository planRepository) {
+                                                   ClientRepository clientRepository,
+                                                   PlanRepository planRepository) {
         return new SubscriptionUseCase(subscriptionRepository, clientRepository, planRepository);
     }
 
     @Bean
     public PaymentUseCase paymentUseCase(SubscriptionRepository subscriptionRepository,
-                                          PaymentRepository paymentRepository) {
+                                         PaymentRepository paymentRepository) {
         return new PaymentUseCase(subscriptionRepository, paymentRepository);
     }
 }

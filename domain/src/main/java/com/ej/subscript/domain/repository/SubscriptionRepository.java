@@ -12,18 +12,28 @@ import java.util.UUID;
  */
 public interface SubscriptionRepository {
 
-    /** Inserta una nueva Subscription (INSERT). */
+    /**
+     * Inserta una nueva Subscription (INSERT).
+     */
     Mono<Subscription> save(Subscription subscription);
 
-    /** Actualiza una Subscription existente (UPDATE). Usado en cancel y renew. */
+    /**
+     * Actualiza una Subscription existente (UPDATE). Usado en cancel y renew.
+     */
     Mono<Subscription> update(Subscription subscription);
 
-    /** Busca por ID; emite vacío si no existe. */
+    /**
+     * Busca por ID; emite vacío si no existe.
+     */
     Mono<Subscription> findById(UUID id);
 
-    /** Retorna todas las suscripciones del cliente dado, sin filtrar por estado. */
+    /**
+     * Retorna todas las suscripciones del cliente dado, sin filtrar por estado.
+     */
     Flux<Subscription> findByClientId(UUID clientId);
 
-    /** Retorna la suscripción con estado ACTIVE del cliente; emite vacío si no tiene ninguna. */
+    /**
+     * Retorna la suscripción con estado ACTIVE del cliente; emite vacío si no tiene ninguna.
+     */
     Mono<Subscription> findActiveByClientId(UUID clientId);
 }

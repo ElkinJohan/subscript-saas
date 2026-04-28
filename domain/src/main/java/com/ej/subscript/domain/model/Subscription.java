@@ -32,7 +32,9 @@ public record Subscription(
             throw new BusinessException("Datos inválidos", 422, "El precio es obligatorio");
     }
 
-    /** Crea una suscripción ACTIVE con el período iniciando hoy. */
+    /**
+     * Crea una suscripción ACTIVE con el período iniciando hoy.
+     */
     public static Subscription create(UUID clientId, UUID planId, Money price, int durationDays) {
         SubscriptionPeriod period = SubscriptionPeriod.of(LocalDate.now(), durationDays);
         return new Subscription(UUID.randomUUID(), clientId, planId, period, SubscriptionStatus.ACTIVE, price);
@@ -55,7 +57,9 @@ public record Subscription(
         return new Subscription(id, clientId, planId, newPeriod, SubscriptionStatus.ACTIVE, price);
     }
 
-    /** Retorna una nueva instancia con estado CANCELLED. No muta el receptor. */
+    /**
+     * Retorna una nueva instancia con estado CANCELLED. No muta el receptor.
+     */
     public Subscription cancel() {
         return new Subscription(id, clientId, planId, period, SubscriptionStatus.CANCELLED, price);
     }

@@ -25,7 +25,15 @@ public class BusinessException extends DomainException {
         this.detail = detail;
     }
 
-    public String title() { return title; }
-    public int status() { return status; }
-    public String detail() { return detail; }
+    public String title() {
+        return title;
+    }
+
+    public int status() {
+        return status;
+    }
+
+    public String detail() {
+        return detail;
+    }
 }

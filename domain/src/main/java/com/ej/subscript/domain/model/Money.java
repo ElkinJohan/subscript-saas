@@ -18,7 +18,9 @@ public record Money(BigDecimal amount, String currency) {
             throw new BusinessException("Datos inválidos", 422, "La moneda es obligatoria");
     }
 
-    /** Factory para pesos colombianos (COP). */
+    /**
+     * Factory para pesos colombianos (COP).
+     */
     public static Money cop(BigDecimal amount) {
         return new Money(amount, "COP");
     }

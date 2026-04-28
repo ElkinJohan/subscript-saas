@@ -20,12 +20,16 @@ public class PlanUseCase {
         this.planRepository = planRepository;
     }
 
-    /** Crea un nuevo plan. */
+    /**
+     * Crea un nuevo plan.
+     */
     public Mono<Plan> create(Plan plan) {
         return planRepository.save(plan);
     }
 
-    /** Desactiva el plan o emite 404 si no existe. Los planes inactivos no pueden ser suscritos. */
+    /**
+     * Desactiva el plan o emite 404 si no existe. Los planes inactivos no pueden ser suscritos.
+     */
     public Mono<Plan> deactivate(UUID planId) {
         return planRepository.findById(planId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -35,7 +39,9 @@ public class PlanUseCase {
                 .flatMap(planRepository::update);
     }
 
-    /** Retorna todos los planes del owner dado. */
+    /**
+     * Retorna todos los planes del owner dado.
+     */
     public Flux<Plan> findByOwnerId(UUID ownerId) {
         return planRepository.findByOwnerId(ownerId);
     }

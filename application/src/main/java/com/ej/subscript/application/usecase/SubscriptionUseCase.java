@@ -60,7 +60,9 @@ public class SubscriptionUseCase {
         return clientExists.then(subscription);
     }
 
-    /** Cancela la suscripción o emite 409 si ya estaba cancelada. */
+    /**
+     * Cancela la suscripción o emite 409 si ya estaba cancelada.
+     */
     public Mono<Subscription> cancel(UUID subscriptionId) {
         return subscriptionRepository.findById(subscriptionId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -92,12 +94,16 @@ public class SubscriptionUseCase {
                 .flatMap(subscriptionRepository::update);
     }
 
-    /** Retorna todas las suscripciones del cliente, sin filtrar por estado. */
+    /**
+     * Retorna todas las suscripciones del cliente, sin filtrar por estado.
+     */
     public Flux<Subscription> findByClientId(UUID clientId) {
         return subscriptionRepository.findByClientId(clientId);
     }
 
-    /** Retorna la suscripción ACTIVE del cliente o emite 404 si no tiene ninguna. */
+    /**
+     * Retorna la suscripción ACTIVE del cliente o emite 404 si no tiene ninguna.
+     */
     public Mono<Subscription> findActiveByClientId(UUID clientId) {
         return subscriptionRepository.findActiveByClientId(clientId)
                 .switchIfEmpty(Mono.error(new BusinessException(

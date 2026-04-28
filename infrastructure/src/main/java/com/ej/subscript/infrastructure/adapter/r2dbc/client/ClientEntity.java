@@ -19,12 +19,15 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ClientEntity implements Persistable<UUID> {
 
-    @Id private UUID id;
-    @Column("owner_id") private UUID ownerId;
+    @Id
+    private UUID id;
+    @Column("owner_id")
+    private UUID ownerId;
     private String cedula;
     private String name;
     private String email;
     private String phone;
     private String status;
-    @Transient private boolean isNew;
+    @Transient
+    private boolean isNew;
 }

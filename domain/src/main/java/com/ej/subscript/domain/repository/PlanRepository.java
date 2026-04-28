@@ -12,15 +12,23 @@ import java.util.UUID;
  */
 public interface PlanRepository {
 
-    /** Inserta un nuevo Plan (INSERT). */
+    /**
+     * Inserta un nuevo Plan (INSERT).
+     */
     Mono<Plan> save(Plan plan);
 
-    /** Actualiza un Plan existente (UPDATE). */
+    /**
+     * Actualiza un Plan existente (UPDATE).
+     */
     Mono<Plan> update(Plan plan);
 
-    /** Busca por ID; emite vacío si no existe. */
+    /**
+     * Busca por ID; emite vacío si no existe.
+     */
     Mono<Plan> findById(UUID id);
 
-    /** Retorna todos los planes del owner dado. */
+    /**
+     * Retorna todos los planes del owner dado.
+     */
     Flux<Plan> findByOwnerId(UUID ownerId);
 }

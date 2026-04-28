@@ -17,7 +17,9 @@ public class OwnerUseCase {
         this.ownerRepository = ownerRepository;
     }
 
-    /** Registra un nuevo Owner garantizando unicidad de email. */
+    /**
+     * Registra un nuevo Owner garantizando unicidad de email.
+     */
     public Mono<Owner> register(Owner owner) {
         return ownerRepository.findByEmail(owner.email())
                 .flatMap(existing -> Mono.<Owner>error(new BusinessException(
@@ -26,7 +28,9 @@ public class OwnerUseCase {
                 .switchIfEmpty(ownerRepository.save(owner));
     }
 
-    /** Busca un Owner por ID o emite 404. */
+    /**
+     * Busca un Owner por ID o emite 404.
+     */
     public Mono<Owner> findById(String id) {
         return ownerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new BusinessException(

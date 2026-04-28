@@ -18,17 +18,23 @@ public record SubscriptionPeriod(LocalDate startDate, LocalDate endDate) {
             throw new IllegalArgumentException("La fecha de fin debe ser posterior a la de inicio");
     }
 
-    /** Crea el período desde {@code start} más {@code durationDays} días. */
+    /**
+     * Crea el período desde {@code start} más {@code durationDays} días.
+     */
     public static SubscriptionPeriod of(LocalDate start, int durationDays) {
         return new SubscriptionPeriod(start, start.plusDays(durationDays));
     }
 
-    /** {@code true} si hoy es posterior a la fecha de fin. */
+    /**
+     * {@code true} si hoy es posterior a la fecha de fin.
+     */
     public boolean isExpired() {
         return LocalDate.now().isAfter(endDate);
     }
 
-    /** Días restantes hasta la fecha de fin (puede ser negativo si ya expiró). */
+    /**
+     * Días restantes hasta la fecha de fin (puede ser negativo si ya expiró).
+     */
     public long daysUntilExpiration() {
         return ChronoUnit.DAYS.between(LocalDate.now(), endDate);
     }

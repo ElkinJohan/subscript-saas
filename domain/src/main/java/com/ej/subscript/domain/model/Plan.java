@@ -31,17 +31,23 @@ public record Plan(
             throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
     }
 
-    /** Crea un nuevo plan con estado ACTIVE. */
+    /**
+     * Crea un nuevo plan con estado ACTIVE.
+     */
     public static Plan create(UUID ownerId, String name, String description, Money price, int durationDays) {
         return new Plan(UUID.randomUUID(), ownerId, name, description, price, durationDays, PlanStatus.ACTIVE);
     }
 
-    /** Retorna una nueva instancia con estado INACTIVE. No muta el receptor. */
+    /**
+     * Retorna una nueva instancia con estado INACTIVE. No muta el receptor.
+     */
     public Plan deactivate() {
         return new Plan(id, ownerId, name, description, price, durationDays, PlanStatus.INACTIVE);
     }
 
-    /** Retorna una nueva instancia con estado ACTIVE. */
+    /**
+     * Retorna una nueva instancia con estado ACTIVE.
+     */
     public Plan activate() {
         return new Plan(id, ownerId, name, description, price, durationDays, PlanStatus.ACTIVE);
     }

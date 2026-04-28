@@ -12,4 +12,5 @@ public record PlanRequest(
         @NotNull @Positive BigDecimal priceAmount,
         @NotBlank String priceCurrency,
         @Positive int durationDays
-) {}
+) {
+}

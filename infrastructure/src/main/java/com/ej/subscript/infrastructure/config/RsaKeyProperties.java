@@ -17,4 +17,5 @@ import java.security.interfaces.RSAPublicKey;
  * La clave pública verifica las firmas (puede distribuirse).
  */
 @ConfigurationProperties(prefix = "rsa")
-public record RsaKeyProperties(RSAPrivateKey privateKey, RSAPublicKey publicKey) {}
+public record RsaKeyProperties(RSAPrivateKey privateKey, RSAPublicKey publicKey) {
+}

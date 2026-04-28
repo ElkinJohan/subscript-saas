@@ -33,7 +33,9 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
 
-    /** Genera un access token JWT para el owner autenticado. */
+    /**
+     * Genera un access token JWT para el owner autenticado.
+     */
     public String generateAccessToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -47,7 +49,9 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    /** Genera un refresh token de larga duración para el owner autenticado. */
+    /**
+     * Genera un refresh token de larga duración para el owner autenticado.
+     */
     public String generateRefreshToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()

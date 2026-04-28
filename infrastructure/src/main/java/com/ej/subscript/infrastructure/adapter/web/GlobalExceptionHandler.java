@@ -36,7 +36,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler implements WebExceptionHandler {
 
-    private record ErrorResponse(String title, int status, String detail) {}
+    private record ErrorResponse(String title, int status, String detail) {
+    }
 
     private final ObjectMapper objectMapper;
 

@@ -16,15 +16,23 @@ import java.util.UUID;
  */
 public interface ClientRepository {
 
-    /** Inserta un nuevo Client (INSERT). */
+    /**
+     * Inserta un nuevo Client (INSERT).
+     */
     Mono<Client> save(Client client);
 
-    /** Actualiza un Client existente (UPDATE). */
+    /**
+     * Actualiza un Client existente (UPDATE).
+     */
     Mono<Client> update(Client client);
 
-    /** Busca por ID; emite vacío si no existe. */
+    /**
+     * Busca por ID; emite vacío si no existe.
+     */
     Mono<Client> findById(UUID id);
 
-    /** Retorna todos los clientes del owner dado. */
+    /**
+     * Retorna todos los clientes del owner dado.
+     */
     Flux<Client> findByOwnerId(UUID ownerId);
 }

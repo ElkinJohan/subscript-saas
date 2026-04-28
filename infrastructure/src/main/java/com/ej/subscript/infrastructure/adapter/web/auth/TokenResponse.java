@@ -6,4 +6,5 @@ package com.ej.subscript.infrastructure.adapter.web.auth;
  * @param accessToken  JWT de corta duración (15 min). Se envía en cada request.
  * @param refreshToken JWT de larga duración (7 días). Solo para renovar el access token.
  */
-public record TokenResponse(String accessToken, String refreshToken) {}
+public record TokenResponse(String accessToken, String refreshToken) {
+}

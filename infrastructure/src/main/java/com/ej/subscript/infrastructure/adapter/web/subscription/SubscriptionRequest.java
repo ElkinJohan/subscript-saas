@@ -7,4 +7,5 @@ import java.util.UUID;
 public record SubscriptionRequest(
         @NotNull UUID clientId,
         @NotNull UUID planId
-) {}
+) {
+}

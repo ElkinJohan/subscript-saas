@@ -38,7 +38,9 @@ public class PaymentUseCase {
                 .flatMap(paymentRepository::save);
     }
 
-    /** Retorna el historial de pagos de una suscripción. */
+    /**
+     * Retorna el historial de pagos de una suscripción.
+     */
     public Flux<Payment> findBySubscriptionId(UUID subscriptionId) {
         return paymentRepository.findBySubscriptionId(subscriptionId);
     }

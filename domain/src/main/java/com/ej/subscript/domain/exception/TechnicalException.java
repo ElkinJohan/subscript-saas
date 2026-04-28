@@ -30,7 +30,15 @@ public class TechnicalException extends DomainException {
         initCause(cause);
     }
 
-    public String title() { return title; }
-    public int status() { return status; }
-    public String detail() { return detail; }
+    public String title() {
+        return title;
+    }
+
+    public int status() {
+        return status;
+    }
+
+    public String detail() {
+        return detail;
+    }
 }

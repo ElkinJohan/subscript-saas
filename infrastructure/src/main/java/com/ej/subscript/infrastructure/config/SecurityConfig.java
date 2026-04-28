@@ -50,7 +50,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http,
-                                               ReactiveJwtDecoder jwtDecoder) {
+                                              ReactiveJwtDecoder jwtDecoder) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth -> auth
@@ -91,7 +91,9 @@ public class SecurityConfig {
         return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
     }
 
-    /** BCrypt con factor de costo 10 (balance seguridad/rendimiento). */
+    /**
+     * BCrypt con factor de costo 10 (balance seguridad/rendimiento).
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

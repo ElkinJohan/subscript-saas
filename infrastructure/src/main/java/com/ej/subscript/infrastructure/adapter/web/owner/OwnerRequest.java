@@ -13,4 +13,5 @@ public record OwnerRequest(
         String businessName,
         @Min(0) int gracePeriodDays,
         @NotBlank @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres") String password
-) {}
+) {
+}

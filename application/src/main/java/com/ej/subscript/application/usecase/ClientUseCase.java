@@ -21,12 +21,16 @@ public class ClientUseCase {
         this.clientRepository = clientRepository;
     }
 
-    /** Registra un nuevo cliente. Sin validación de duplicados — la cédula puede repetirse entre owners. */
+    /**
+     * Registra un nuevo cliente. Sin validación de duplicados — la cédula puede repetirse entre owners.
+     */
     public Mono<Client> register(Client client) {
         return clientRepository.save(client);
     }
 
-    /** Desactiva el cliente o emite 404 si no existe. */
+    /**
+     * Desactiva el cliente o emite 404 si no existe.
+     */
     public Mono<Client> deactivate(UUID clientId) {
         return clientRepository.findById(clientId)
                 .switchIfEmpty(Mono.error(new BusinessException(
@@ -36,7 +40,9 @@ public class ClientUseCase {
                 .flatMap(clientRepository::update);
     }
 
-    /** Retorna todos los clientes del owner dado. */
+    /**
+     * Retorna todos los clientes del owner dado.
+     */
     public Flux<Client> findByOwnerId(UUID ownerId) {
         return clientRepository.findByOwnerId(ownerId);
     }

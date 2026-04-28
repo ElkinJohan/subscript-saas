@@ -14,9 +14,13 @@ import java.time.Duration;
  */
 public interface TokenBlacklist {
 
-    /** Marca un {@code jti} como revocado durante {@code ttl}. */
+    /**
+     * Marca un {@code jti} como revocado durante {@code ttl}.
+     */
     Mono<Void> blacklist(String jti, Duration ttl);
 
-    /** {@code true} si el {@code jti} fue revocado y aún no expiró su TTL. */
+    /**
+     * {@code true} si el {@code jti} fue revocado y aún no expiró su TTL.
+     */
     Mono<Boolean> isBlacklisted(String jti);
 }

@@ -11,6 +11,8 @@ import reactor.core.publisher.Mono;
  */
 public interface AuditLog {
 
-    /** Registra el evento. Completa silenciosamente al persistir. */
+    /**
+     * Registra el evento. Completa silenciosamente al persistir.
+     */
     Mono<Void> record(AuditEvent event);
 }
