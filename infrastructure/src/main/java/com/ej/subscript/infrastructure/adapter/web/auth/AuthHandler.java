@@ -7,6 +7,7 @@ import com.ej.subscript.domain.audit.AuditLog;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.infrastructure.security.JwtService;
+import com.ej.subscript.infrastructure.security.RevokedTokenException;
 import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -25,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -69,17 +71,23 @@ public class AuthHandler {
     }
 
     /**
-     * Renueva el par de tokens a partir de un refresh token válido.
+     * Renueva el par de tokens a partir de un refresh token válido y rota el refresh entrante.
      * <p>
-     * El refresh token debe llevar el claim {@code type=refresh} — un access token
-     * NO sirve para refrescar (defensa en profundidad contra abuso de scope).
-     * Cualquier fallo (firma inválida, expirado, claim faltante, owner borrado)
+     * Tras validar el token, su {@code jti} se agrega a la blacklist con TTL igual al
+     * tiempo restante de vida — cualquier intento posterior de reusarlo es rechazado
+     * por {@link com.ej.subscript.infrastructure.security.BlacklistAwareJwtDecoder} y
+     * registrado como {@link AuditEventType#AUTH_TOKEN_REUSE_DETECTED}, señal de robo
+     * o cliente mal implementado. La blacklist ocurre <b>antes</b> de emitir el par
+     * nuevo: si la emisión fallara, el refresh viejo queda igualmente revocado.
+     * <p>
+     * Cualquier otro fallo (firma inválida, expirado, claim faltante, owner borrado)
      * devuelve 401 genérico para no filtrar información al atacante.
      */
     public Mono<ServerResponse> refresh(ServerRequest request) {
         return request.bodyToMono(RefreshRequest.class)
                 .flatMap(this::validate)
                 .flatMap(req -> jwtDecoder.decode(req.refreshToken()))
+                .onErrorResume(RevokedTokenException.class, this::auditReuseAndReject)
                 .onErrorMap(JwtException.class, e -> new BusinessException(
                         "Token inválido", 401, "Refresh token inválido o expirado"))
                 .flatMap(jwt -> {
@@ -89,9 +97,9 @@ public class AuthHandler {
                     }
                     return ownerUseCase.findById(jwt.getSubject())
                             .onErrorMap(BusinessException.class, e -> new BusinessException(
-                                    "Token inválido", 401, "Refresh token inválido o expirado"));
+                                    "Token inválido", 401, "Refresh token inválido o expirado"))
+                            .flatMap(owner -> rotateAndIssue(jwt, owner));
                 })
-                .flatMap(owner -> auditAndIssue(owner, AuditEventType.AUTH_TOKEN_REFRESHED))
                 .flatMap(body -> ServerResponse.ok().bodyValue(body));
     }
 
@@ -121,20 +129,42 @@ public class AuthHandler {
     }
 
     private Mono<TokenResponse> auditAndIssue(Owner owner, AuditEventType type) {
-        TokenResponse tokens = new TokenResponse(
-                jwtService.generateAccessToken(owner),
-                jwtService.generateRefreshToken(owner)
-        );
-        AuditEvent event = AuditEvent.of(type, owner.id(), Map.of("email", owner.email()));
-        return auditLog.record(event).thenReturn(tokens);
+        return Mono.defer(() -> {
+            TokenResponse tokens = new TokenResponse(
+                    jwtService.generateAccessToken(owner),
+                    jwtService.generateRefreshToken(owner)
+            );
+            AuditEvent event = AuditEvent.of(type, owner.id(), Map.of("email", owner.email()));
+            return auditLog.record(event).thenReturn(tokens);
+        });
     }
 
-    private static java.util.UUID ownerIdOf(Jwt jwt) {
+    private Mono<TokenResponse> rotateAndIssue(Jwt oldRefresh, Owner owner) {
+        return tokenBlacklist.blacklist(oldRefresh.getId(), remaining(oldRefresh.getExpiresAt()))
+                .then(auditAndIssue(owner, AuditEventType.AUTH_TOKEN_REFRESHED));
+    }
+
+    private Mono<Jwt> auditReuseAndReject(RevokedTokenException ex) {
+        AuditEvent event = AuditEvent.of(
+                AuditEventType.AUTH_TOKEN_REUSE_DETECTED,
+                parseOwnerId(ex.getSubject()),
+                Map.of("jti", ex.getJti() == null ? "unknown" : ex.getJti()));
+        return auditLog.record(event)
+                .then(Mono.error(new BusinessException(
+                        "Token inválido", 401, "Refresh token inválido o expirado")));
+    }
+
+    private static UUID parseOwnerId(String subject) {
+        if (subject == null) return null;
         try {
-            return java.util.UUID.fromString(jwt.getSubject());
+            return UUID.fromString(subject);
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private static UUID ownerIdOf(Jwt jwt) {
+        return parseOwnerId(jwt.getSubject());
     }
 
     private Mono<Void> blacklistAccess(Jwt jwt) {

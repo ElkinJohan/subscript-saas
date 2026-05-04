@@ -7,6 +7,7 @@ import com.ej.subscript.domain.audit.AuditLog;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Owner;
 import com.ej.subscript.infrastructure.security.JwtService;
+import com.ej.subscript.infrastructure.security.RevokedTokenException;
 import com.ej.subscript.infrastructure.security.TokenBlacklist;
 import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,7 @@ class AuthHandlerTest {
         tokenBlacklist = Mockito.mock(TokenBlacklist.class);
         auditLog = Mockito.mock(AuditLog.class);
         when(auditLog.record(any(AuditEvent.class))).thenReturn(Mono.empty());
+        when(tokenBlacklist.blacklist(anyString(), any(Duration.class))).thenReturn(Mono.empty());
 
         handler = new AuthHandler(
                 ownerUseCase,
@@ -229,6 +231,62 @@ class AuthHandlerTest {
                 .bodyValue(new RefreshRequest(""))
                 .exchange()
                 .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void shouldBlacklistOldRefreshTokenBeforeIssuingNewOnes() {
+        String oldJti = UUID.randomUUID().toString();
+        Jwt refreshJwt = jwt(oldJti, OWNER_ID.toString(), Map.of("type", "refresh"));
+        when(jwtDecoder.decode("good-refresh")).thenReturn(Mono.just(refreshJwt));
+        when(ownerUseCase.findById(OWNER_ID.toString())).thenReturn(Mono.just(OWNER));
+        when(jwtService.generateAccessToken(OWNER)).thenReturn("new-access");
+        when(jwtService.generateRefreshToken(OWNER)).thenReturn("new-refresh");
+
+        client.post().uri("/api/auth/refresh")
+                .bodyValue(new RefreshRequest("good-refresh"))
+                .exchange()
+                .expectStatus().isOk();
+
+        verify(tokenBlacklist).blacklist(eq(oldJti), any(Duration.class));
+    }
+
+    @Test
+    void shouldReturn401AndAuditReuseWhenRefreshTokenIsRevoked() {
+        String revokedJti = UUID.randomUUID().toString();
+        when(jwtDecoder.decode(anyString())).thenReturn(
+                Mono.error(new RevokedTokenException(revokedJti, OWNER_ID.toString()))
+        );
+
+        client.post().uri("/api/auth/refresh")
+                .bodyValue(new RefreshRequest("revoked-refresh"))
+                .exchange()
+                .expectStatus().isUnauthorized();
+
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditLog).record(captor.capture());
+        AuditEvent event = captor.getValue();
+        assertThat(event.type()).isEqualTo(AuditEventType.AUTH_TOKEN_REUSE_DETECTED);
+        assertThat(event.ownerId()).isEqualTo(OWNER_ID);
+        assertThat(event.data()).containsEntry("jti", revokedJti);
+        verify(jwtService, never()).generateAccessToken(any());
+        verify(jwtService, never()).generateRefreshToken(any());
+    }
+
+    @Test
+    void shouldNotIssueNewTokensIfBlacklistFails() {
+        Jwt refreshJwt = jwt(OWNER_ID.toString(), Map.of("type", "refresh"));
+        when(jwtDecoder.decode(anyString())).thenReturn(Mono.just(refreshJwt));
+        when(ownerUseCase.findById(OWNER_ID.toString())).thenReturn(Mono.just(OWNER));
+        when(tokenBlacklist.blacklist(anyString(), any(Duration.class)))
+                .thenReturn(Mono.error(new RuntimeException("Redis caído")));
+
+        client.post().uri("/api/auth/refresh")
+                .bodyValue(new RefreshRequest("good-refresh"))
+                .exchange()
+                .expectStatus().is5xxServerError();
+
+        verify(jwtService, never()).generateAccessToken(any());
+        verify(jwtService, never()).generateRefreshToken(any());
     }
 
     // --- Logout ----------------------------------------------------------
