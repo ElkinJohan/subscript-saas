@@ -1,6 +1,7 @@
 package com.ej.subscript.infrastructure.security;
 
 import com.ej.subscript.domain.model.Owner;
+import com.ej.subscript.infrastructure.config.SecurityTokenProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -8,57 +9,51 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
- * Genera tokens JWT firmados con la clave privada RSA del servidor.
+ * Issues RSA-signed JWT access and refresh tokens.
  *
  * <h3>Access token</h3>
- * Vida útil: 15 minutos. Contiene el ID del owner como {@code sub} y su email.
- * El cliente lo envía en cada request: {@code Authorization: Bearer <token>}.
+ * Lifetime configured by {@code security.token.access-ttl} (default 15m).
+ * Carries the owner id as {@code sub} and the email as a custom claim.
+ * Sent on every authenticated request as {@code Authorization: Bearer <token>}.
  *
  * <h3>Refresh token</h3>
- * Vida útil: 7 días. Permite obtener un nuevo access token sin volver a autenticarse.
- * El claim {@code type=refresh} lo diferencia del access token para evitar
- * que se use como token de acceso a la API.
+ * Lifetime configured by {@code security.token.refresh-ttl} (default 7d).
+ * Carries the {@code type=refresh} claim so it cannot be mistaken for an
+ * access token at the resource server. Rotated and blacklisted on every
+ * call to {@code /api/auth/refresh}.
  */
 @Component
 @RequiredArgsConstructor
 public class JwtService {
 
     private static final String ISSUER = "subscript-saas";
-    private static final long ACCESS_TOKEN_MINUTES = 15;
-    private static final long REFRESH_TOKEN_DAYS = 7;
 
     private final JwtEncoder jwtEncoder;
+    private final SecurityTokenProperties tokenProperties;
 
-    /**
-     * Genera un access token JWT para el owner autenticado.
-     */
     public String generateAccessToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(now)
-                .expiresAt(now.plus(ACCESS_TOKEN_MINUTES, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(tokenProperties.accessTtl()))
                 .subject(owner.id().toString())
                 .claim("email", owner.email())
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    /**
-     * Genera un refresh token de larga duración para el owner autenticado.
-     */
     public String generateRefreshToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(ISSUER)
                 .id(UUID.randomUUID().toString())
                 .issuedAt(now)
-                .expiresAt(now.plus(REFRESH_TOKEN_DAYS, ChronoUnit.DAYS))
+                .expiresAt(now.plus(tokenProperties.refreshTtl()))
                 .subject(owner.id().toString())
                 .claim("type", "refresh")
                 .build();

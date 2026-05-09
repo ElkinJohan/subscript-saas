@@ -191,6 +191,35 @@ Each entry follows a compact ADR format: **context**, **decision**,
   - ❌ Slower than H2 (containers boot per test class).
   - ❌ Requires Docker on every dev machine and CI runner.
 
+### ADR-8: Env vars for values, profiles for shape changes (Twelve-Factor App)
+
+- **Context**: Tunables (token TTLs, hostnames, feature flags) must
+  vary per environment without recompiling. Separately, beans
+  themselves may need to differ per environment — e.g. an embedded
+  fake during tests vs. a real client in production. These are two
+  different problems and deserve two different mechanisms.
+- **Decision**:
+  - **Values** flow through env vars with sensible defaults, declared
+    once in `application.yml` as `${VAR:default}` and bound to records
+    annotated with `@ConfigurationProperties`. K8s / Docker / CI
+    inject the env vars at deploy time. There is one source of truth
+    for config keys, not N partially-synced profile YAMLs.
+  - **Spring profiles** are reserved for **bean shape changes** —
+    swapping which `@Bean` Spring registers (e.g. a `@Profile("test")`
+    in-memory fake replacing a real adapter). No profile is active in
+    Subscript today; profiles will appear if and when test isolation
+    or environment-specific wiring requires them.
+- **Trade-offs**:
+  - ✅ Twelve-Factor App-aligned: secrets and per-env values never
+    enter the repo.
+  - ✅ One source of truth for config keys, easier to refactor.
+  - ✅ Spring binds `Duration` with relaxed syntax (`15m`, `7d`, ...),
+    keeping the YAML human-readable.
+  - ✅ `@ConfigurationProperties` is type-safe — the compiler catches
+    a typo in a property name where `@Value` would silently fail.
+  - ❌ Devs must remember to export env vars when running locally; a
+    `.env` loader in the IDE smooths that out.
+
 ---
 
 ## Project layout
@@ -250,6 +279,21 @@ manager (AWS Secrets Manager, HashiCorp Vault, etc).
 ```
 
 The API listens on `http://localhost:8080`.
+
+### 4. (Optional) Use a short access token TTL for testing
+
+The default access token lives 15 minutes. To exercise the refresh flow
+faster locally, override the TTL with an env var:
+
+```bash
+ACCESS_TOKEN_TTL=3m ./gradlew :infrastructure:bootRun
+```
+
+Both `ACCESS_TOKEN_TTL` and `REFRESH_TOKEN_TTL` accept Spring's relaxed
+duration syntax: `30s`, `2m`, `3h`, `7d`. See
+[ADR-8](#adr-8-env-vars-for-values-profiles-for-shape-changes-twelve-factor-app)
+for the rationale on why config values flow through env vars rather
+than profile YAMLs.
 
 ---
 
