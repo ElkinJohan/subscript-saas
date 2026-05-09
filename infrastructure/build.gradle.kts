@@ -3,6 +3,12 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+// Spring Boot 3.2.4 BOM pins org.testcontainers:* to 1.19.7, whose transitive
+// docker-java 3.3.x cannot negotiate API with modern Docker daemons (28+). Override the
+// property so every testcontainers artifact (including the transitive base) ships with a
+// docker-java version that supports current Docker Engine API.
+extra["testcontainers.version"] = "1.21.4"
+
 dependencies {
     implementation(project(":application"))
     implementation(project(":domain"))
@@ -20,8 +26,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.7")
-    testImplementation("org.testcontainers:postgresql:1.19.7")
-    testImplementation("org.testcontainers:r2dbc:1.19.7")
-    testImplementation("org.testcontainers:mongodb:1.19.7")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:r2dbc")
+    testImplementation("org.testcontainers:mongodb")
 }
