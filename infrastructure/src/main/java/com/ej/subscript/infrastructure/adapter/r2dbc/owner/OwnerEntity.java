@@ -12,6 +12,18 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
+/**
+ * Representación R2DBC del Owner para la tabla {@code owners}.
+ *
+ * <p>Implementa {@link Persistable} para que Spring Data sepa diferenciar un
+ * INSERT de un UPDATE: el flag {@code isNew} se setea desde
+ * {@link OwnerMapper#toEntity} y es {@code @Transient}, así no se mapea a una
+ * columna. Sin esto, Spring Data asume "ya existe" cuando el id viene seteado
+ * desde el dominio y dispara UPDATE en vez de INSERT.
+ *
+ * <p>Es deliberadamente mutable (Lombok @Setter) porque R2DBC popula los
+ * campos por reflexión al hidratar la fila desde la base.
+ */
 @Table("owners")
 @Getter
 @Setter
