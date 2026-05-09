@@ -34,7 +34,6 @@ public class OwnerRouter {
                             description = "Public endpoint. Creates an Owner with a BCrypt-hashed "
                                     + "password. The Owner represents a business (gym, academy, "
                                     + "clinic) that will manage its own clients and subscriptions.",
-                            security = {},
                             requestBody = @RequestBody(
                                     required = true,
                                     content = @Content(schema = @Schema(implementation = OwnerRequest.class))

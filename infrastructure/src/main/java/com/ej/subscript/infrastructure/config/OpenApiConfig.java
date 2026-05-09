@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +15,17 @@ import org.springframework.context.annotation.Configuration;
  * <p>The Swagger UI is served at {@code /swagger-ui.html} and the raw spec at
  * {@code /v3/api-docs}. Both paths must be allowed in {@link SecurityConfig}.
  *
- * <p>A global JWT bearer requirement is registered, so every operation appears
- * with the "Authorize" button by default. Public endpoints (login, refresh,
- * owner registration) override this with {@code security = {}} on their
- * {@code @RouterOperation}.
+ * <p>The bearer scheme is registered as a reusable {@link SecurityScheme}
+ * (so the "Authorize" button is available in Swagger UI to test protected
+ * endpoints), but it is <strong>not</strong> attached as a global
+ * {@code SecurityRequirement}. Each operation declares its own security
+ * explicitly via {@code @SecurityRequirement(name = "bearerAuth")} on the
+ * router, so public endpoints stay free of the lock icon.
+ *
+ * <p>Why not use a global requirement: springdoc serializes
+ * {@code security = {}} as the annotation default, which OpenAPI 3 then
+ * interprets as "inherit the global requirement". Declaring security
+ * per-operation avoids the ambiguity.
  */
 @Configuration
 public class OpenApiConfig {
@@ -30,7 +36,6 @@ public class OpenApiConfig {
     public OpenAPI subscriptOpenAPI() {
         return new OpenAPI()
                 .info(apiInfo())
-                .addSecurityItem(new SecurityRequirement().addList(BEARER_SCHEME))
                 .components(new Components().addSecuritySchemes(BEARER_SCHEME, jwtScheme()));
     }
 
