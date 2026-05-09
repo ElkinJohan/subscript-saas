@@ -32,7 +32,6 @@ public class AuthRouter {
                             description = "Validates credentials with BCrypt and returns a 15-minute "
                                     + "access token plus a 7-day refresh token. Returns the same 401 "
                                     + "for unknown email and wrong password to prevent user enumeration.",
-                            security = {},
                             requestBody = @RequestBody(
                                     required = true,
                                     content = @Content(schema = @Schema(implementation = LoginRequest.class))
@@ -60,7 +59,6 @@ public class AuthRouter {
                                     + "issues a new access + refresh pair. If the same token is "
                                     + "presented twice it is treated as reuse: the request is rejected "
                                     + "and an AUTH_TOKEN_REUSE_DETECTED audit event is recorded.",
-                            security = {},
                             requestBody = @RequestBody(
                                     required = true,
                                     content = @Content(schema = @Schema(implementation = RefreshRequest.class))
