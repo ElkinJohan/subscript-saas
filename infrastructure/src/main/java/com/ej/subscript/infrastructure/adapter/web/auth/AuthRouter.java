@@ -15,6 +15,19 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+/**
+ * Define las rutas funcionales del agregado Auth y publica su contrato OpenAPI.
+ *
+ * <p>El binding HTTP → {@link AuthHandler} se hace con {@link RouterFunctions} —
+ * no hay {@code @RestController} ni {@code @RequestMapping}, en línea con el
+ * stack reactivo de WebFlux funcional que usa el resto del proyecto.
+ *
+ * <p>Las anotaciones {@link RouterOperations} no afectan al routing en runtime;
+ * springdoc-openapi las lee en arranque para generar el documento OpenAPI 3
+ * (visible en {@code /v3/api-docs} y renderizado por Swagger UI). Vivir en el
+ * router mantiene la metadata cerca de la ruta que describe — si se agrega o
+ * renombra un endpoint, la documentación se actualiza en el mismo archivo.
+ */
 @Configuration
 public class AuthRouter {
 

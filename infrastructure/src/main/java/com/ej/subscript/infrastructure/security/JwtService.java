@@ -34,6 +34,17 @@ public class JwtService {
     private final JwtEncoder jwtEncoder;
     private final SecurityTokenProperties tokenProperties;
 
+    /**
+     * Issues a signed access token for {@code owner}.
+     *
+     * <p>Each call mints a fresh {@code jti} (UUID v4), so two concurrent
+     * issuances for the same owner produce different tokens — required for
+     * blacklist semantics, since revoking one token must not revoke another.
+     *
+     * @param owner owner the token is issued for; never {@code null}.
+     * @return compact serialized JWS string, ready to send in the
+     *         {@code Authorization: Bearer} header.
+     */
     public String generateAccessToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -47,6 +58,18 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    /**
+     * Issues a signed refresh token for {@code owner}.
+     *
+     * <p>The {@code type=refresh} custom claim differentiates this token from
+     * an access token at the resource server: the {@code /refresh} handler
+     * rejects any JWT missing the claim with a generic 401, preventing access
+     * tokens from being silently elevated into refresh credentials.
+     *
+     * @param owner owner the token is issued for; never {@code null}.
+     * @return compact serialized JWS string, sent only on {@code /api/auth/refresh}
+     *         and {@code /api/auth/logout}.
+     */
     public String generateRefreshToken(Owner owner) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
