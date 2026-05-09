@@ -53,14 +53,26 @@ What you'll find here:
 
 ### v1 scope
 
-The v1 milestone covers three aggregates end-to-end:
+The v1 milestone covers three aggregates end-to-end (domain model →
+persistence adapter → reactive use case → REST endpoint → integration test
+→ Markdown reference under [`docs/api/`](docs/api/)):
 
-- **Auth** — login, refresh rotation, logout, audit log
-- **Owner** — registration, lookup
-- **Client** — owner's customers
+- **Auth** — `POST /api/auth/{login,refresh,logout}`. Single-use refresh
+  rotation with reuse detection, RSA-signed JWTs, Redis blacklist with
+  TTL = remaining token lifetime, MongoDB audit trail.
+- **Owner** — `POST /api/owners`, `GET /api/owners/{id}`. Public
+  registration with BCrypt-hashed password, authenticated lookup. Email
+  uniqueness enforced at the use case.
+- **Client** — `POST /api/owners/{ownerId}/clients`,
+  `GET /api/owners/{ownerId}/clients`,
+  `PATCH /api/clients/{id}/deactivate`. Owner-scoped paths, soft delete,
+  status as a closed enum (`ACTIVE` / `INACTIVE`).
 
-`Plan`, `Subscription`, and `Payment` are sketched in the codebase but are
-**out of v1**. They will be promoted as the project evolves.
+**Out of v1** — `Plan`, `Subscription`, `Payment` aggregates exist as
+domain sketches in the codebase (records and ports), but have no use
+cases, no adapters, no endpoints, and no tests. They will be promoted as
+the project evolves; the v1 line is drawn deliberately at the bounded
+context that demonstrates the architecture without inflating scope.
 
 ---
 
@@ -318,8 +330,11 @@ In-depth Markdown documentation lives under [`docs/api/`](docs/api/):
 
 - [`docs/api/auth.md`](docs/api/auth.md) — login, refresh (with rotation),
   logout, reuse detection
-- `docs/api/owners.md` — *(in progress)*
-- `docs/api/clients.md` — *(in progress)*
+- [`docs/api/owners.md`](docs/api/owners.md) — registration, lookup,
+  domain-model table, security and consistency notes
+- [`docs/api/clients.md`](docs/api/clients.md) — register under an owner,
+  list per owner, soft deactivation, caveats around aspirational vs
+  enforced validations
 
 ---
 
@@ -356,8 +371,13 @@ the transactional Postgres model. Events are defined in
 ### Closing v1 (Auth + Owner + Client)
 
 - [ ] Translate remaining Spanish Javadocs and exception messages to English
-- [ ] Complete `docs/api/owners.md` and `docs/api/clients.md`
-- [ ] Bump Testcontainers to 1.20.x (fixes a Docker 27 API mismatch on local)
+- [ ] Enforce owner-existence and cedula-uniqueness checks in
+  `ClientUseCase.register` (today the OpenAPI 404/409 paths are
+  aspirational — see `docs/api/clients.md` Caveats)
+- [ ] Validate NIT uniqueness in `OwnerUseCase.register` (the OpenAPI
+  summary advertises it — see `docs/api/owners.md` Caveats)
+- [ ] Row-level authorization on Client endpoints: caller's owner id must
+  match the path's `ownerId`
 
 ### Beyond v1 (senior breadth)
 
