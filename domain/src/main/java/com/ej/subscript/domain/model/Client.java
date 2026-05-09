@@ -18,6 +18,14 @@ public record Client(
         String phone,
         ClientStatus status
 ) {
+    /**
+     * Domain invariants checked on every construction path. Mirroring the
+     * request-level validators here keeps the model from existing in an
+     * invalid state — including when hydrating from the database via
+     * {@link com.ej.subscript.infrastructure.adapter.r2dbc.client.ClientMapper}.
+     *
+     * @throws BusinessException 422 when any required field is null/blank.
+     */
     public Client {
         if (ownerId == null)
             throw new BusinessException("Datos inválidos", 422, "El ownerId es obligatorio");
