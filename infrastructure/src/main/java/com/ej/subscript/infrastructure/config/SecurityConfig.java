@@ -41,7 +41,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
  */
 @Configuration
 @EnableWebFluxSecurity
-@EnableConfigurationProperties(RsaKeyProperties.class)
+@EnableConfigurationProperties({RsaKeyProperties.class, SecurityTokenProperties.class})
 public class SecurityConfig {
 
     /**

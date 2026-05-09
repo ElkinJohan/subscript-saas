@@ -15,9 +15,17 @@ spring:
     mongodb:
       uri: mongodb://subscript:subscript@localhost:27017/subscript?authSource=admin
 
-# Claves RSA para firmar y verificar tokens JWT.
-# En producción estas claves deben estar fuera del classpath
-# (variables de entorno o un gestor de secretos como AWS Secrets Manager).
+# RSA key pair used to sign and verify JWT tokens.
+# In production these keys must live outside the classpath
+# (environment variables or a secret manager such as AWS Secrets Manager).
 rsa:
   private-key: classpath:keys/private.pem
   public-key: classpath:keys/public.pem
+
+# Token lifetimes. Override per environment via Spring profile
+# (application-{profile}.yml) or env vars ACCESS_TOKEN_TTL / REFRESH_TOKEN_TTL.
+# Accepts Spring's relaxed duration syntax: 15m, 7d, 2h, 30s, etc.
+security:
+  token:
+    access-ttl: ${ACCESS_TOKEN_TTL:15m}
+    refresh-ttl: ${REFRESH_TOKEN_TTL:7d}
