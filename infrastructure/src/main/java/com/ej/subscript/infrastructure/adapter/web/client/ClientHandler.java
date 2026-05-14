@@ -34,21 +34,23 @@ public class ClientHandler {
      * Registra un Client nuevo bajo el {@code ownerId} del path.
      *
      * <p>El {@code ownerId} se toma del path —no del body— para que la relación
-     * padre-hijo sea inequívoca y futuras reglas de autorización a nivel de
-     * fila puedan compararlo contra el owner del token sin parsear payloads.
+     * padre-hijo sea inequívoca y la regla de autorización a nivel de fila
+     * (caller del token == owner del recurso) se evalúe contra ese path sin
+     * tener que parsear el body.
      *
      * @return {@code 201 Created} con el Client persistido en estado {@code ACTIVE}.
      *         Errores: {@code 400} validación de schema, {@code 401} sin token,
-     *         {@code 422} invariantes de dominio.
+     *         {@code 403} el caller no es dueño del owner del path, {@code 422}
+     *         invariantes de dominio.
      */
     public Mono<ServerResponse> register(ServerRequest request) {
-        UUID ownerId = UUID.fromString(request.pathVariable("ownerId"));
-        return request.bodyToMono(ClientRequest.class)
-                .flatMap(this::validate)
-                .map(req -> Client.create(ownerId, req.cedula(), req.name(), req.email(), req.phone()))
-                .flatMap(clientUseCase::register)
-                .map(ClientResponse::from)
-                .flatMap(body -> ServerResponse.status(HttpStatus.CREATED).bodyValue(body));
+        return requireOwnerMatchesCaller(request)
+                .flatMap(ownerId -> request.bodyToMono(ClientRequest.class)
+                        .flatMap(this::validate)
+                        .map(req -> Client.create(ownerId, req.cedula(), req.name(), req.email(), req.phone()))
+                        .flatMap(clientUseCase::register)
+                        .map(ClientResponse::from)
+                        .flatMap(body -> ServerResponse.status(HttpStatus.CREATED).bodyValue(body)));
     }
 
     /**
@@ -57,11 +59,15 @@ public class ClientHandler {
      * <p>Stream-friendly: la respuesta es un array JSON construido a partir del
      * {@link reactor.core.publisher.Flux} del use case. Si el owner no tiene
      * clientes, la respuesta es un array vacío con {@code 200 OK}, no un 404.
+     *
+     * @return {@code 200 OK} con la lista; {@code 401} sin token; {@code 403}
+     *         el caller no es dueño del owner del path.
      */
     public Mono<ServerResponse> findByOwnerId(ServerRequest request) {
-        UUID ownerId = UUID.fromString(request.pathVariable("ownerId"));
-        return ServerResponse.ok()
-                .body(clientUseCase.findByOwnerId(ownerId).map(ClientResponse::from), ClientResponse.class);
+        return requireOwnerMatchesCaller(request)
+                .flatMap(ownerId -> ServerResponse.ok()
+                        .body(clientUseCase.findByOwnerId(ownerId).map(ClientResponse::from),
+                                ClientResponse.class));
     }
 
     /**
@@ -76,14 +82,37 @@ public class ClientHandler {
      * Útil para que clientes sean "archivados" sin perder histórico para
      * reportes o auditoría futura.
      *
-     * @return {@code 200 OK} con el Client actualizado; {@code 404} si no existe;
-     *         {@code 401} si el token está ausente o es inválido.
+     * @return {@code 200 OK} con el Client actualizado; {@code 401} sin token;
+     *         {@code 403} el caller no es dueño del owner del path;
+     *         {@code 404} si el client no existe.
      */
     public Mono<ServerResponse> deactivate(ServerRequest request) {
-        UUID clientId = UUID.fromString(request.pathVariable("clientId"));
-        return clientUseCase.deactivate(clientId)
-                .map(ClientResponse::from)
-                .flatMap(body -> ServerResponse.ok().bodyValue(body));
+        return requireOwnerMatchesCaller(request)
+                .flatMap(ownerId -> {
+                    UUID clientId = UUID.fromString(request.pathVariable("clientId"));
+                    return clientUseCase.deactivate(clientId)
+                            .map(ClientResponse::from)
+                            .flatMap(body -> ServerResponse.ok().bodyValue(body));
+                });
+    }
+
+    /**
+     * Authorization gate: valida que el {@code ownerId} del path coincida con
+     * el {@code ownerId} del caller (extraído del JWT por
+     * {@link AuthenticatedOwnerResolver}). Devuelve el ownerId validado para
+     * que el flujo posterior lo use sin reparsear el path.
+     *
+     * @return el ownerId validado o un error {@code 403 Forbidden} si no
+     *         coincide.
+     */
+    private Mono<UUID> requireOwnerMatchesCaller(ServerRequest request) {
+        UUID pathOwnerId = UUID.fromString(request.pathVariable("ownerId"));
+        return authenticatedOwnerResolver.currentOwnerId(request)
+                .flatMap(callerOwnerId -> callerOwnerId.equals(pathOwnerId)
+                        ? Mono.just(pathOwnerId)
+                        : Mono.error(new BusinessException(
+                                "Acceso denegado", 403,
+                                "El owner del token no coincide con el del recurso")));
     }
 
     private <T> Mono<T> validate(T body) {
