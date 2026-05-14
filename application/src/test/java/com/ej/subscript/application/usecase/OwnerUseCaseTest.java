@@ -32,8 +32,9 @@ class OwnerUseCaseTest {
     }
 
     @Test
-    void shouldRegisterOwnerWhenEmailIsNew() {
+    void shouldRegisterOwnerWhenEmailAndNitAreNew() {
         when(ownerRepository.findByEmail(OWNER.email())).thenReturn(Mono.empty());
+        when(ownerRepository.findByNit(OWNER.nit())).thenReturn(Mono.empty());
         when(ownerRepository.save(any())).thenReturn(Mono.just(OWNER));
 
         StepVerifier.create(ownerUseCase.register(OWNER))
@@ -44,12 +45,31 @@ class OwnerUseCaseTest {
     @Test
     void shouldRejectRegistrationWhenEmailAlreadyExists() {
         when(ownerRepository.findByEmail(OWNER.email())).thenReturn(Mono.just(OWNER));
-        when(ownerRepository.save(any())).thenReturn(Mono.just(OWNER)); // reactor evalúa switchIfEmpty eagerly
+        when(ownerRepository.findByNit(OWNER.nit())).thenReturn(Mono.empty()); // eager chain construction
+        when(ownerRepository.save(any())).thenReturn(Mono.just(OWNER));        // eager chain construction
 
         StepVerifier.create(ownerUseCase.register(OWNER))
                 .expectErrorSatisfies(ex -> {
                     assertThat(ex).isInstanceOf(BusinessException.class);
-                    assertThat(((BusinessException) ex).status()).isEqualTo(409);
+                    BusinessException be = (BusinessException) ex;
+                    assertThat(be.status()).isEqualTo(409);
+                    assertThat(be.title()).contains("Email");
+                })
+                .verify();
+    }
+
+    @Test
+    void shouldRejectRegistrationWhenNitAlreadyExists() {
+        when(ownerRepository.findByEmail(OWNER.email())).thenReturn(Mono.empty());
+        when(ownerRepository.findByNit(OWNER.nit())).thenReturn(Mono.just(OWNER));
+        when(ownerRepository.save(any())).thenReturn(Mono.just(OWNER));        // eager chain construction
+
+        StepVerifier.create(ownerUseCase.register(OWNER))
+                .expectErrorSatisfies(ex -> {
+                    assertThat(ex).isInstanceOf(BusinessException.class);
+                    BusinessException be = (BusinessException) ex;
+                    assertThat(be.status()).isEqualTo(409);
+                    assertThat(be.title()).contains("NIT");
                 })
                 .verify();
     }

@@ -18,4 +18,9 @@ public interface OwnerR2dbcRepository extends ReactiveCrudRepository<OwnerEntity
      * Devuelve el Owner cuyo email coincida exactamente. Emite vacío si no existe.
      */
     Mono<OwnerEntity> findByEmail(String email);
+
+    /**
+     * Devuelve el Owner cuyo NIT coincida exactamente. Emite vacío si no existe.
+     */
+    Mono<OwnerEntity> findByNit(String nit);
 }

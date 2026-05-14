@@ -26,6 +26,11 @@ public interface OwnerRepository {
     Mono<Owner> findByEmail(String email);
 
     /**
+     * Busca por NIT; emite vacío si no existe. Usado para validar unicidad al registrar.
+     */
+    Mono<Owner> findByNit(String nit);
+
+    /**
      * Elimina el Owner por ID. Emite vacío al completar.
      */
     Mono<Void> deleteById(String id);
