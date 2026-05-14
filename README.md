@@ -374,8 +374,6 @@ the transactional Postgres model. Events are defined in
 - [ ] Enforce cedula-uniqueness check in `ClientUseCase.register`
   (today the OpenAPI 409 path is aspirational — see
   `docs/api/clients.md` Caveats)
-- [ ] Validate NIT uniqueness in `OwnerUseCase.register` (the OpenAPI
-  summary advertises it — see `docs/api/owners.md` Caveats)
 - [ ] Row-level authorization on Client endpoints: caller's owner id must
   match the path's `ownerId`
 
