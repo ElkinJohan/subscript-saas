@@ -17,16 +17,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Maneja los endpoints REST del agregado Owner.
+ * Handles the REST endpoints for the Owner aggregate.
  *
- * <p>El handler se mantiene fino a propósito: la validación estructural la
- * resuelve Bean Validation sobre el {@link OwnerRequest}, las invariantes de
- * dominio las hace el compact constructor de {@link Owner}, y la lógica de
- * unicidad y persistencia vive en {@link OwnerUseCase}. Esto deja al handler
- * solo dos responsabilidades: traducción HTTP↔dominio y hashing de password.
+ * <p>The handler is intentionally thin: schema validation lives in Bean
+ * Validation on the {@link OwnerRequest}, domain invariants live in
+ * {@link Owner}'s compact constructor, and uniqueness + persistence live
+ * in {@link OwnerUseCase}. The handler is left with only two
+ * responsibilities: HTTP ↔ domain translation and password hashing.
  *
- * <p>El hashing BCrypt ocurre antes de instanciar el {@link Owner} para que
- * la contraseña en texto plano no cruce la frontera del modelo de dominio.
+ * <p>BCrypt hashing happens before instantiating the {@link Owner} so the
+ * plaintext password never crosses the domain-model boundary.
  */
 @Component
 @RequiredArgsConstructor
@@ -37,17 +37,16 @@ public class OwnerHandler {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Registra un Owner nuevo. Endpoint público — es el punto de entrada de la
-     * plataforma.
+     * Registers a new Owner. Public endpoint — entry point to the platform.
      *
-     * <p>Pipeline reactivo: valida el body → hashea password → construye
-     * {@link Owner} (que aplica sus propias invariantes) → delega al
-     * {@link OwnerUseCase#register use case} (que verifica unicidad de email
-     * y persiste) → mapea a {@link OwnerResponse} sin exponer el hash.
+     * <p>Reactive pipeline: validate the body → hash the password → build
+     * an {@link Owner} (which enforces its own invariants) → delegate to
+     * {@link OwnerUseCase#register} (which enforces uniqueness and
+     * persists) → map to {@link OwnerResponse} without exposing the hash.
      *
-     * @return {@code 201 Created} con el Owner persistido (sin password).
-     *         Errores: {@code 400} validación de schema, {@code 409} email
-     *         duplicado, {@code 422} invariantes de dominio.
+     * @return {@code 201 Created} with the persisted Owner (no password).
+     *         Errors: {@code 400} schema validation, {@code 409} duplicate
+     *         email or NIT, {@code 422} domain invariants.
      */
     public Mono<ServerResponse> register(ServerRequest request) {
         return request.bodyToMono(OwnerRequest.class)
@@ -62,14 +61,16 @@ public class OwnerHandler {
     }
 
     /**
-     * Devuelve el perfil del Owner referenciado por el path. Requiere autenticación.
+     * Returns the Owner profile referenced by the path. Requires
+     * authentication.
      *
-     * <p>El filtro de Spring Security valida el access token antes de que este
-     * método se ejecute, por eso un GET sin token siempre retorna {@code 401}
-     * y no filtra si el {@code id} existe.
+     * <p>The Spring Security filter validates the access token before this
+     * method runs, so a GET without a token always returns {@code 401}
+     * and never leaks whether the {@code id} exists.
      *
-     * @return {@code 200 OK} con {@link OwnerResponse}; {@code 404} si el
-     *         Owner no existe; {@code 401} si el token es inválido o revocado.
+     * @return {@code 200 OK} with {@link OwnerResponse}; {@code 404} when
+     *         the Owner does not exist; {@code 401} when the token is
+     *         missing, invalid or revoked.
      */
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("id");
@@ -84,6 +85,6 @@ public class OwnerHandler {
         String detail = violations.stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining(", "));
-        return Mono.error(new BusinessException("Datos inválidos", 400, detail));
+        return Mono.error(new BusinessException("Invalid input", 400, detail));
     }
 }

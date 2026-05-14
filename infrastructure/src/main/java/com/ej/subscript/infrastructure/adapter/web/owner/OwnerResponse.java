@@ -5,13 +5,13 @@ import com.ej.subscript.domain.model.Owner;
 import java.util.UUID;
 
 /**
- * Vista pública del Owner devuelta por la API.
+ * Public view of the Owner returned by the API.
  *
- * <p>Refleja a {@link Owner} pero <b>omite intencionalmente el hash de
- * contraseña</b>: la presentación nunca expone material criptográfico, ni
- * siquiera el digest. Cualquier campo que se agregue al modelo de dominio
- * debe sumarse acá explícitamente para que su filtrado sea una decisión
- * consciente, no un olvido.
+ * <p>Mirrors {@link Owner} but <b>intentionally omits the password hash</b>:
+ * the presentation layer never exposes cryptographic material, not even
+ * the digest. Any new field added to the domain model has to be opted in
+ * here explicitly, so filtering is a deliberate decision instead of an
+ * oversight.
  */
 public record OwnerResponse(
         UUID id,
@@ -23,7 +23,7 @@ public record OwnerResponse(
         int gracePeriodDays
 ) {
     /**
-     * Proyecta un {@link Owner} de dominio a su DTO de presentación.
+     * Projects a domain {@link Owner} into its presentation DTO.
      */
     static OwnerResponse from(Owner owner) {
         return new OwnerResponse(

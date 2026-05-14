@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 /**
- * Adaptador de salida (Hexagonal Architecture) que implementa {@link OwnerRepository}
- * usando Spring Data R2DBC. Traduce entre el modelo de dominio ({@link Owner}) y la
- * entidad de persistencia ({@link OwnerEntity}) mediante {@link OwnerMapper}.
+ * Outbound adapter (Hexagonal Architecture) that implements
+ * {@link OwnerRepository} via Spring Data R2DBC. Translates between the
+ * domain model ({@link Owner}) and the persistence entity
+ * ({@link OwnerEntity}) using {@link OwnerMapper}.
  */
 @Repository
 @RequiredArgsConstructor

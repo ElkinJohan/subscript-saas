@@ -4,34 +4,37 @@ import com.ej.subscript.domain.model.Owner;
 import reactor.core.publisher.Mono;
 
 /**
- * Puerto de salida (output port) para la persistencia de {@link Owner}.
- * Define QUÉ operaciones necesita el dominio, sin acoplar al mecanismo de almacenamiento.
- * La implementación concreta vive en la capa de infraestructura ({@code OwnerRepositoryAdapter}).
+ * Outbound port for persisting {@link Owner}.
+ * Declares WHAT operations the domain needs without coupling to a storage
+ * mechanism. The concrete implementation lives in the infrastructure layer
+ * ({@code OwnerRepositoryAdapter}).
  */
 public interface OwnerRepository {
 
     /**
-     * Persiste un nuevo Owner (INSERT).
+     * Persists a new Owner (INSERT).
      */
     Mono<Owner> save(Owner owner);
 
     /**
-     * Busca por ID; emite vacío si no existe.
+     * Looks up by id; emits empty when absent.
      */
     Mono<Owner> findById(String id);
 
     /**
-     * Busca por email; emite vacío si no existe. Usado para validar unicidad y para login.
+     * Looks up by email; emits empty when absent. Used both to validate
+     * uniqueness on register and as the login credential lookup.
      */
     Mono<Owner> findByEmail(String email);
 
     /**
-     * Busca por NIT; emite vacío si no existe. Usado para validar unicidad al registrar.
+     * Looks up by NIT; emits empty when absent. Used to validate uniqueness
+     * on register.
      */
     Mono<Owner> findByNit(String nit);
 
     /**
-     * Elimina el Owner por ID. Emite vacío al completar.
+     * Removes the Owner by id. Completes empty on success.
      */
     Mono<Void> deleteById(String id);
 }

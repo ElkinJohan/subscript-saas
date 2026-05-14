@@ -3,15 +3,15 @@ package com.ej.subscript.infrastructure.adapter.r2dbc.owner;
 import com.ej.subscript.domain.model.Owner;
 
 /**
- * Traductor entre el modelo de dominio {@link Owner} y la entidad R2DBC
- * {@link OwnerEntity}. Mantenerlo en un tipo aparte mantiene a la entity y al
- * domain record desacoplados: ninguno conoce al otro.
+ * Translator between the domain {@link Owner} record and the R2DBC
+ * {@link OwnerEntity}. Keeping it in a separate type keeps the entity
+ * and the domain record decoupled: neither knows about the other.
  */
 class OwnerMapper {
 
     /**
-     * Hacia la persistencia. Marca {@code isNew = true} para que Spring Data
-     * emita un INSERT — ver {@link OwnerEntity} para el detalle.
+     * To persistence. Marks {@code isNew = true} so Spring Data fires an
+     * INSERT — see {@link OwnerEntity} for the rationale.
      */
     static OwnerEntity toEntity(Owner owner) {
         OwnerEntity e = new OwnerEntity(
@@ -23,9 +23,9 @@ class OwnerMapper {
     }
 
     /**
-     * Hacia el dominio. El compact constructor del record valida invariantes,
-     * así que una fila corrupta en la base se rechaza al hidratar — no llega
-     * a la capa de aplicación en estado inválido.
+     * To domain. The record's compact constructor validates invariants, so
+     * a corrupted row in the database is rejected at hydration — it never
+     * reaches the application layer in an invalid state.
      */
     static Owner toDomain(OwnerEntity entity) {
         return new Owner(

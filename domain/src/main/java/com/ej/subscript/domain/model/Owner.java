@@ -5,10 +5,10 @@ import com.ej.subscript.domain.exception.BusinessException;
 import java.util.UUID;
 
 /**
- * Representa al dueño del negocio que usa la plataforma.
- * El {@code passwordHash} es el resultado del algoritmo BCrypt aplicado sobre
- * la contraseña en texto plano ingresada durante el registro. El dominio
- * nunca almacena ni conoce la contraseña original.
+ * Represents the business owner using the platform.
+ * The {@code passwordHash} is the result of applying BCrypt over the
+ * plaintext password supplied at registration. The domain never stores
+ * nor knows the original password.
  */
 public record Owner(
         UUID id,
@@ -31,24 +31,24 @@ public record Owner(
      */
     public Owner {
         if (nit == null || nit.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "El NIT es obligatorio");
+            throw new BusinessException("Invalid input", 422, "NIT is required");
         if (name == null || name.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "El nombre es obligatorio");
+            throw new BusinessException("Invalid input", 422, "Name is required");
         if (email == null || email.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "El email es obligatorio");
+            throw new BusinessException("Invalid input", 422, "Email is required");
         if (gracePeriodDays < 0)
-            throw new BusinessException("Datos inválidos", 422, "El período de gracia no puede ser negativo");
+            throw new BusinessException("Invalid input", 422, "Grace period cannot be negative");
     }
 
     /**
-     * Factory para owners recién registrados: genera un {@code id} nuevo y deja
-     * que el compact constructor valide los datos. Usar este método en vez del
-     * canonical constructor garantiza que dos registros nunca compartan id, aun
-     * en condiciones de concurrencia.
+     * Factory for freshly registered owners: generates a new {@code id} and
+     * lets the compact constructor validate the input. Using this method
+     * instead of the canonical constructor guarantees that two records
+     * never share an id, even under concurrent registrations.
      *
-     * @param passwordHash hash BCrypt ya calculado por la capa de aplicación;
-     *                     este método no realiza hashing.
-     * @return nuevo {@link Owner} con id generado.
+     * @param passwordHash BCrypt hash already computed by the application
+     *                     layer; this method does not hash.
+     * @return new {@link Owner} with a generated id.
      */
     public static Owner create(String nit, String name, String email,
                                String phone, String businessName,

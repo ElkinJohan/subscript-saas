@@ -216,7 +216,7 @@ class AuthHandlerTest {
         Jwt refreshJwt = jwt(OWNER_ID.toString(), Map.of("type", "refresh"));
         when(jwtDecoder.decode(anyString())).thenReturn(Mono.just(refreshJwt));
         when(ownerUseCase.findById(anyString())).thenReturn(
-                Mono.error(new BusinessException("Owner no encontrado", 404, "No existe"))
+                Mono.error(new BusinessException("Owner not found", 404, "Not found"))
         );
 
         client.post().uri("/api/auth/refresh")

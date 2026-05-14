@@ -6,21 +6,22 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Repositorio Spring Data R2DBC de bajo nivel para {@link OwnerEntity}.
+ * Low-level Spring Data R2DBC repository for {@link OwnerEntity}.
  *
- * <p>Hereda los CRUD reactivos de {@link ReactiveCrudRepository} y agrega un
- * derived query por email. El dominio no depende de esta interfaz: el puente
- * con el puerto {@code OwnerRepository} lo hace {@code OwnerRepositoryAdapter}.
+ * <p>Inherits reactive CRUD from {@link ReactiveCrudRepository} and adds
+ * derived queries by email and NIT. The domain does not depend on this
+ * interface: the bridge to the {@code OwnerRepository} port is
+ * {@code OwnerRepositoryAdapter}.
  */
 public interface OwnerR2dbcRepository extends ReactiveCrudRepository<OwnerEntity, UUID> {
 
     /**
-     * Devuelve el Owner cuyo email coincida exactamente. Emite vacío si no existe.
+     * Returns the Owner whose email matches exactly. Emits empty when absent.
      */
     Mono<OwnerEntity> findByEmail(String email);
 
     /**
-     * Devuelve el Owner cuyo NIT coincida exactamente. Emite vacío si no existe.
+     * Returns the Owner whose NIT matches exactly. Emits empty when absent.
      */
     Mono<OwnerEntity> findByNit(String nit);
 }

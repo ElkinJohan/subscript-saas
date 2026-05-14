@@ -119,7 +119,7 @@ class OwnerHandlerTest {
     void shouldReturn404WhenOwnerNotFound() {
         String id = UUID.randomUUID().toString();
         when(ownerUseCase.findById(id)).thenReturn(
-                Mono.error(new BusinessException("Owner no encontrado", 404, "No existe"))
+                Mono.error(new BusinessException("Owner not found", 404, "Not found"))
         );
 
         client.get().uri("/api/owners/{id}", id)

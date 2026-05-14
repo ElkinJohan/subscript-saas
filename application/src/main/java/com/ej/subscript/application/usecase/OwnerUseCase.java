@@ -6,8 +6,9 @@ import com.ej.subscript.domain.repository.OwnerRepository;
 import reactor.core.publisher.Mono;
 
 /**
- * Orquesta los casos de uso del Owner.
- * No contiene lógica de negocio propia — delega al dominio y al repositorio.
+ * Orchestrates Owner use cases.
+ * Holds no business logic of its own — it delegates to the domain model
+ * and the repository port.
  */
 public class OwnerUseCase {
 
@@ -18,42 +19,42 @@ public class OwnerUseCase {
     }
 
     /**
-     * Registra un nuevo Owner garantizando unicidad de email y NIT.
-     * Si ambos están duplicados, el conflicto de email gana (se evalúa primero).
-     * El UNIQUE constraint en la DB es defense-in-depth — el chequeo a nivel use case
-     * existe para devolver un 409 limpio en vez de dejar que el constraint violation
-     * emerja como un 500.
+     * Registers a new Owner, enforcing email and NIT uniqueness.
+     * If both are duplicated, the email conflict wins (it is checked first).
+     * The DB UNIQUE constraint is defense in depth — the use-case-level
+     * check exists to return a clean 409 instead of letting the constraint
+     * violation surface as a 500.
      */
     public Mono<Owner> register(Owner owner) {
         return ownerRepository.findByEmail(owner.email())
                 .flatMap(existing -> Mono.<Owner>error(new BusinessException(
-                        "Email ya registrado", 409,
-                        "Ya existe un owner con el email " + owner.email())))
+                        "Email already registered", 409,
+                        "An owner with email " + owner.email() + " is already registered")))
                 .switchIfEmpty(
                         ownerRepository.findByNit(owner.nit())
                                 .flatMap(existing -> Mono.<Owner>error(new BusinessException(
-                                        "NIT ya registrado", 409,
-                                        "Ya existe un owner con el NIT " + owner.nit())))
+                                        "NIT already registered", 409,
+                                        "An owner with NIT " + owner.nit() + " is already registered")))
                                 .switchIfEmpty(ownerRepository.save(owner))
                 );
     }
 
     /**
-     * Busca un Owner por ID o emite 404.
+     * Looks up an Owner by id, or emits 404.
      */
     public Mono<Owner> findById(String id) {
         return ownerRepository.findById(id)
                 .switchIfEmpty(Mono.error(new BusinessException(
-                        "Owner no encontrado", 404, "No existe un owner con ID " + id)));
+                        "Owner not found", 404, "No owner found with id " + id)));
     }
 
     /**
-     * Busca un Owner por email o emite 401.
-     * Utilizado exclusivamente en el flujo de autenticación JWT.
+     * Looks up an Owner by email, or emits 401.
+     * Used exclusively by the JWT authentication flow.
      */
     public Mono<Owner> findByEmail(String email) {
         return ownerRepository.findByEmail(email)
                 .switchIfEmpty(Mono.error(new BusinessException(
-                        "Credenciales inválidas", 401, "Email o contraseña incorrectos")));
+                        "Invalid credentials", 401, "Email or password are incorrect")));
     }
 }
