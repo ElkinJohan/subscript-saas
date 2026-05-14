@@ -4,6 +4,7 @@ import com.ej.subscript.application.usecase.ClientUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
 import com.ej.subscript.domain.model.ClientStatus;
+import com.ej.subscript.infrastructure.security.AuthenticatedOwnerResolver;
 import jakarta.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ class ClientHandlerTest {
 
     private WebTestClient client;
     private ClientUseCase clientUseCase;
+    private AuthenticatedOwnerResolver authenticatedOwnerResolver;
 
     private static final UUID OWNER_ID = UUID.randomUUID();
     private static final Client ACTIVE_CLIENT = new Client(
@@ -37,7 +39,14 @@ class ClientHandlerTest {
     @BeforeEach
     void setUp() {
         clientUseCase = Mockito.mock(ClientUseCase.class);
-        var handler = new ClientHandler(clientUseCase, Validation.buildDefaultValidatorFactory().getValidator());
+        authenticatedOwnerResolver = Mockito.mock(AuthenticatedOwnerResolver.class);
+        // Default: caller is OWNER_ID. Cross-owner tests override per case.
+        when(authenticatedOwnerResolver.currentOwnerId(any())).thenReturn(Mono.just(OWNER_ID));
+        var handler = new ClientHandler(
+                clientUseCase,
+                Validation.buildDefaultValidatorFactory().getValidator(),
+                authenticatedOwnerResolver
+        );
         WebExceptionHandler exHandler = (exchange, ex) -> {
             if (ex instanceof BusinessException be)
                 exchange.getResponse().setStatusCode(HttpStatus.valueOf(be.status()));
@@ -104,7 +113,8 @@ class ClientHandlerTest {
                 "carlos@test.com", "300", ClientStatus.INACTIVE);
         when(clientUseCase.deactivate(ACTIVE_CLIENT.id())).thenReturn(Mono.just(inactive));
 
-        client.patch().uri("/api/clients/{id}/deactivate", ACTIVE_CLIENT.id())
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate",
+                        OWNER_ID, ACTIVE_CLIENT.id())
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ClientResponse.class)
@@ -118,8 +128,38 @@ class ClientHandlerTest {
                 Mono.error(new BusinessException("Cliente no encontrado", 404, "No existe"))
         );
 
-        client.patch().uri("/api/clients/{id}/deactivate", id)
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate", OWNER_ID, id)
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    void shouldReturn403WhenRegisteringClientForDifferentOwner() {
+        UUID otherOwnerId = UUID.randomUUID();
+        // caller is OWNER_ID (default mock) but path targets otherOwnerId
+
+        client.post().uri("/api/owners/{ownerId}/clients", otherOwnerId)
+                .bodyValue(new ClientRequest("123456", "Carlos", "carlos@test.com", "300"))
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    void shouldReturn403WhenListingClientsOfDifferentOwner() {
+        UUID otherOwnerId = UUID.randomUUID();
+
+        client.get().uri("/api/owners/{ownerId}/clients", otherOwnerId)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    void shouldReturn403WhenDeactivatingClientOfDifferentOwner() {
+        UUID otherOwnerId = UUID.randomUUID();
+
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate",
+                        otherOwnerId, ACTIVE_CLIENT.id())
+                .exchange()
+                .expectStatus().isForbidden();
     }
 }

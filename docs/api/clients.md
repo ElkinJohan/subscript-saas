@@ -29,7 +29,7 @@ mutating. The handler/use case never sees an in-place state change.
 
 - [`POST /api/owners/{ownerId}/clients`](#post-apiownersowneridclients) — register a client under an owner
 - [`GET /api/owners/{ownerId}/clients`](#get-apiownersowneridclients) — list every client of an owner
-- [`PATCH /api/clients/{id}/deactivate`](#patch-apiclientsiddeactivate) — soft-deactivate a client
+- [`PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`](#patch-apiownersowneridclientsclientiddeactivate) — soft-deactivate a client
 
 ---
 
@@ -85,6 +85,9 @@ The Client is created in `ACTIVE` state.
 
 **`401 Unauthorized`** — access token missing, expired, malformed or revoked.
 
+**`403 Forbidden`** — the caller's `ownerId` (from the JWT) does not match
+the `ownerId` in the URL.
+
 **`422 Unprocessable Entity`** — domain invariants violated (empty cedula,
 empty name, empty email). Mirrors the request validators as a defense layer
 on the domain side.
@@ -132,6 +135,9 @@ List every Client (active and inactive) tied to the given Owner.
 
 **`401 Unauthorized`** — access token missing, expired or revoked.
 
+**`403 Forbidden`** — the caller's `ownerId` (from the JWT) does not match
+the `ownerId` in the URL.
+
 ### Example
 
 ```bash
@@ -141,7 +147,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
 
 ---
 
-## `PATCH /api/clients/{id}/deactivate`
+## `PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`
 
 Soft-deactivate the Client: status flips from `ACTIVE` to `INACTIVE`. The row
 stays in the database — this is not a delete. Calling deactivate again on an
@@ -151,9 +157,10 @@ already-inactive client is idempotent (returns the same record).
 
 ### Path parameters
 
-| Name | Type | Description  |
-|------|------|--------------|
-| `id` | UUID | Client id    |
+| Name       | Type | Description |
+|------------|------|-------------|
+| `ownerId`  | UUID | Owner id    |
+| `clientId` | UUID | Client id   |
 
 ### Responses
 
@@ -172,6 +179,9 @@ already-inactive client is idempotent (returns the same record).
 ```
 
 **`401 Unauthorized`** — access token missing, expired or revoked.
+
+**`403 Forbidden`** — the caller's `ownerId` (from the JWT) does not match
+the `ownerId` in the URL.
 
 **`404 Not Found`** — no Client with that id.
 
@@ -207,9 +217,15 @@ curl -X PATCH \
   Either layer alone is enough to keep an invalid Client out of the
   application; both together protect against accidental gaps.
 
-## Caveats / open items
+## Authorization
 
-- **Authorization is authentication-only.** Any holder of a valid access
-  token can list or deactivate any client today. Row-level access control
-  (caller's owner id matches the path's `ownerId`) is a planned hardening
-  step and the reason `ownerId` lives on the URL.
+Row-level access control is enforced on every endpoint of this aggregate.
+The caller's `ownerId` (read from the JWT `sub` claim) must match the
+`ownerId` segment of the URL — otherwise the response is `403 Forbidden`.
+This means owner A cannot list, register, or deactivate clients that
+belong to owner B even if they have a valid token of their own.
+
+The comparison is intentionally on the URL (not on the body) so the
+authorization check can run **before** the request body is parsed or
+before any database round-trip — which is also why `deactivate` carries
+the `ownerId` in the path.
