@@ -371,9 +371,6 @@ the transactional Postgres model. Events are defined in
 ### Closing v1 (Auth + Owner + Client)
 
 - [ ] Translate remaining Spanish Javadocs and exception messages to English
-- [ ] Enforce cedula-uniqueness check in `ClientUseCase.register`
-  (today the OpenAPI 409 path is aspirational — see
-  `docs/api/clients.md` Caveats)
 - [ ] Row-level authorization on Client endpoints: caller's owner id must
   match the path's `ownerId`
 
