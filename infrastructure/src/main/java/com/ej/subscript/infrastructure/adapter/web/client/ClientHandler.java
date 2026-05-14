@@ -3,6 +3,7 @@ package com.ej.subscript.infrastructure.adapter.web.client;
 import com.ej.subscript.application.usecase.ClientUseCase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
+import com.ej.subscript.infrastructure.security.AuthenticatedOwnerResolver;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class ClientHandler {
 
     private final ClientUseCase clientUseCase;
     private final Validator validator;
+    private final AuthenticatedOwnerResolver authenticatedOwnerResolver;
 
     /**
      * Registra un Client nuevo bajo el {@code ownerId} del path.
