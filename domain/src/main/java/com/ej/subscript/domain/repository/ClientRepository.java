@@ -35,4 +35,11 @@ public interface ClientRepository {
      * Retorna todos los clientes del owner dado.
      */
     Flux<Client> findByOwnerId(UUID ownerId);
+
+    /**
+     * Busca un cliente por la combinación (ownerId, cedula); emite vacío si no existe.
+     * Usado para validar unicidad por owner antes del save —la cédula puede repetirse
+     * entre owners pero no dentro del mismo owner.
+     */
+    Mono<Client> findByOwnerIdAndCedula(UUID ownerId, String cedula);
 }
