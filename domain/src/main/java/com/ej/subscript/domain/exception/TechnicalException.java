@@ -1,13 +1,13 @@
 package com.ej.subscript.domain.exception;
 
 /**
- * Excepción que representa una falla de infraestructura inesperada.
- * Siempre resulta en un HTTP 500. El {@code GlobalExceptionHandler}
- * la loguea como {@code ERROR} con stack trace completo, pero expone
- * al cliente solo un mensaje genérico (nunca detalles internos).
+ * Represents an unexpected infrastructure failure. Always maps to HTTP 500.
+ * The {@code GlobalExceptionHandler} logs it as {@code ERROR} with a full
+ * stack trace but only exposes a generic message to the client (never
+ * internal details).
  *
- * <p>Ejemplos de uso: fallo de conexión a base de datos, timeout en
- * servicio externo, error de serialización no recuperable.
+ * <p>Typical cases: database connection failure, external service timeout,
+ * non-recoverable serialization error.
  */
 public class TechnicalException extends DomainException {
 

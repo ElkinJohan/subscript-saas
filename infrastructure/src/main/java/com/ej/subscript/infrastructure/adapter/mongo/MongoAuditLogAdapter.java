@@ -8,12 +8,13 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * Adaptador de salida que persiste {@link AuditEvent} en MongoDB.
+ * Outbound adapter that persists {@link AuditEvent} into MongoDB.
  * <p>
- * Si la escritura falla (Mongo caído, lento, etc.) registra un warning y
- * completa silenciosamente — la auditoría no debe romper el flujo de negocio
- * que la invoca. Si necesitamos garantías estrictas, deberíamos pasar a una
- * cola (Kafka/RabbitMQ) y aceptar audit-eventually-consistent como contrato.
+ * If the write fails (Mongo unreachable, slow, etc.) the adapter logs a
+ * warning and completes silently — auditing must not break the business
+ * flow that invokes it. If stricter guarantees are required later, the
+ * right move is a queue (Kafka/RabbitMQ) and accepting an
+ * "audit-eventually-consistent" contract.
  */
 @Slf4j
 @Component

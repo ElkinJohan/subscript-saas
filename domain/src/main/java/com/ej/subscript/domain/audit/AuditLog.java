@@ -3,16 +3,16 @@ package com.ej.subscript.domain.audit;
 import reactor.core.publisher.Mono;
 
 /**
- * Puerto de salida para el registro de eventos de auditoría.
+ * Outbound port for recording audit events.
  * <p>
- * La implementación es responsable de garantizar que un fallo persistiendo
- * un evento NO interrumpa el flujo de negocio principal — la auditoría es
- * deseable, pero no debería tirar abajo un login si Mongo está caído.
+ * Implementations are responsible for ensuring that a failure persisting
+ * an event does NOT break the main business flow — auditing is desirable
+ * but should not bring down a login if Mongo is unreachable.
  */
 public interface AuditLog {
 
     /**
-     * Registra el evento. Completa silenciosamente al persistir.
+     * Records the event. Completes silently after persisting.
      */
     Mono<Void> record(AuditEvent event);
 }

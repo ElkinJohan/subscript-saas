@@ -1,8 +1,8 @@
 package com.ej.subscript.domain.audit;
 
 /**
- * Tipos de eventos auditables emitidos por la aplicación.
- * Inmutable y exhaustivo — agregar tipos nuevos es una decisión consciente.
+ * Auditable event types emitted by the application.
+ * Closed and exhaustive — adding a new type is a deliberate decision.
  */
 public enum AuditEventType {
     AUTH_LOGIN_SUCCESS,
