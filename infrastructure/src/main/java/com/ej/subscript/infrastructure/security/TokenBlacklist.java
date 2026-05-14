@@ -5,22 +5,23 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 /**
- * Lista de tokens revocados. Permite invalidar JWTs antes de su expiración natural
- * (logout explícito, rotación de refresh tokens, sesión comprometida).
+ * List of revoked tokens. Allows invalidating JWTs before their natural
+ * expiration (explicit logout, refresh-token rotation, compromised session).
  *
- * <p>El identificador es el claim {@code jti} (JWT ID), un UUID emitido por
- * {@link JwtService}. Cada entrada tiene TTL igual al tiempo restante de vida
- * del token — Redis la elimina automáticamente al expirar.
+ * <p>The identifier is the {@code jti} (JWT ID) claim, a UUID minted by
+ * {@link JwtService}. Each entry has a TTL equal to the token's remaining
+ * lifetime — Redis evicts it automatically once expired.
  */
 public interface TokenBlacklist {
 
     /**
-     * Marca un {@code jti} como revocado durante {@code ttl}.
+     * Marks a {@code jti} as revoked for {@code ttl}.
      */
     Mono<Void> blacklist(String jti, Duration ttl);
 
     /**
-     * {@code true} si el {@code jti} fue revocado y aún no expiró su TTL.
+     * {@code true} if the {@code jti} has been revoked and its TTL has not
+     * expired yet.
      */
     Mono<Boolean> isBlacklisted(String jti);
 }

@@ -3,12 +3,13 @@ package com.ej.subscript.infrastructure.adapter.web.auth;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Cuerpo del request {@code POST /api/auth/refresh} y {@code POST /api/auth/logout}.
+ * Request body for {@code POST /api/auth/refresh} and {@code POST /api/auth/logout}.
  *
- * @param refreshToken JWT de refresh emitido previamente por la API. Obligatorio y no en blanco.
- *                     En {@code /refresh} actúa como credencial — su {@code jti} se blacklistea
- *                     antes de emitir el par nuevo. En {@code /logout} se blacklistea junto al
- *                     access token del header.
+ * @param refreshToken refresh JWT previously issued by the API. Required
+ *                     and non-blank. On {@code /refresh} it acts as the
+ *                     credential — its {@code jti} is blacklisted before
+ *                     the new pair is minted. On {@code /logout} it is
+ *                     blacklisted together with the header's access token.
  */
 public record RefreshRequest(@NotBlank String refreshToken) {
 }

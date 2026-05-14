@@ -6,23 +6,25 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Extrae el {@code ownerId} del caller a partir del {@link ServerRequest}.
+ * Extracts the caller's {@code ownerId} from a {@link ServerRequest}.
  *
- * <p>Existe como abstracción para desacoplar a los handlers del mecanismo de
- * autenticación concreto: hoy es un JWT con {@code sub = ownerId}, mañana
- * podría ser una sesión cookie-based o un header propietario sin que los
- * handlers tengan que cambiar.
+ * <p>Exists as an abstraction so handlers stay decoupled from the concrete
+ * authentication mechanism: today it is a JWT with {@code sub = ownerId},
+ * tomorrow it could be a cookie-based session or a proprietary header
+ * without forcing handlers to change.
  *
- * <p>Pensado para checks de autorización a nivel de fila — el caller comparte
- * el id obtenido acá contra el id presente en el path para decidir si tiene
- * acceso al recurso.
+ * <p>Designed for row-level authorization checks — the caller compares the
+ * id returned here against the id carried by the path to decide whether
+ * access to the resource is allowed.
  */
 public interface AuthenticatedOwnerResolver {
 
     /**
-     * @param request request entrante con el principal ya validado por el filtro de seguridad.
-     * @return {@link Mono} con el ownerId del caller; emite vacío si no hay principal
-     *         (lo que en práctica no debería ocurrir en endpoints autenticados).
+     * @param request incoming request whose principal has already been
+     *                validated by the security filter chain.
+     * @return {@link Mono} with the caller's ownerId; emits empty when no
+     *         principal is present (which in practice should not happen on
+     *         authenticated endpoints).
      */
     Mono<UUID> currentOwnerId(ServerRequest request);
 }

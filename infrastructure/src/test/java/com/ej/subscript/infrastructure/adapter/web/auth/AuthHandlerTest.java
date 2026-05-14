@@ -150,7 +150,7 @@ class AuthHandlerTest {
     @Test
     void shouldReturn401WhenEmailDoesNotExist() {
         when(ownerUseCase.findByEmail(anyString())).thenReturn(
-                Mono.error(new BusinessException("Credenciales inválidas", 401, "Email o contraseña incorrectos"))
+                Mono.error(new BusinessException("Invalid credentials", 401, "Email or password are incorrect"))
         );
 
         client.post().uri("/api/auth/login")

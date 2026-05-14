@@ -8,14 +8,13 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Implementación de {@link AuthenticatedOwnerResolver} respaldada por el JWT
- * que Spring Security expone como {@link JwtAuthenticationToken} en el
- * principal del request.
+ * {@link AuthenticatedOwnerResolver} implementation backed by the JWT that
+ * Spring Security exposes as a {@link JwtAuthenticationToken} in the
+ * request principal.
  *
- * <p>El claim {@code sub} del token contiene el {@code ownerId} (ver
- * {@link JwtService#generateAccessToken}). Acá lo parseamos a {@link UUID}
- * y lo devolvemos para que los handlers puedan compararlo contra los path
- * variables.
+ * <p>The token's {@code sub} claim carries the {@code ownerId} (see
+ * {@link JwtService#generateAccessToken}). We parse it into a {@link UUID}
+ * and return it so handlers can compare against path variables.
  */
 @Component
 public class JwtAuthenticatedOwnerResolver implements AuthenticatedOwnerResolver {

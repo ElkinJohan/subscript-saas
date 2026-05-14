@@ -22,21 +22,21 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 /**
- * Configura Spring Security para WebFlux con autenticación stateless via JWT RSA.
+ * Configures Spring Security for WebFlux with stateless JWT-RSA authentication.
  *
- * <h3>Rutas públicas</h3>
+ * <h3>Public routes</h3>
  * <ul>
- *   <li>{@code POST /api/owners} — registro de nuevos owners</li>
- *   <li>{@code POST /api/auth/login} — obtención del token</li>
+ *   <li>{@code POST /api/owners} — new owner registration</li>
+ *   <li>{@code POST /api/auth/login} — token issuance</li>
  * </ul>
- * Todas las demás rutas requieren un {@code Authorization: Bearer <accessToken>} válido.
+ * Every other route requires a valid {@code Authorization: Bearer <accessToken>}.
  *
- * <h3>Flujo de autenticación</h3>
+ * <h3>Authentication flow</h3>
  * <ol>
- *   <li>Cliente hace {@code POST /api/auth/login} → recibe accessToken + refreshToken</li>
- *   <li>Cada request incluye {@code Authorization: Bearer <accessToken>}</li>
- *   <li>El filtro de Spring Security valida la firma RSA y la expiración</li>
- *   <li>El handler accede al principal via {@code request.principal()}</li>
+ *   <li>Client calls {@code POST /api/auth/login} → receives accessToken + refreshToken</li>
+ *   <li>Each request carries {@code Authorization: Bearer <accessToken>}</li>
+ *   <li>The Spring Security filter validates the RSA signature and expiration</li>
+ *   <li>The handler reads the principal via {@code request.principal()}</li>
  * </ol>
  */
 @Configuration
@@ -45,8 +45,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 public class SecurityConfig {
 
     /**
-     * Cadena de filtros principal.
-     * CSRF está deshabilitado porque la API es stateless (no hay cookies de sesión).
+     * Main filter chain.
+     * CSRF is disabled because the API is stateless (no session cookies).
      */
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http,
@@ -76,9 +76,9 @@ public class SecurityConfig {
     }
 
     /**
-     * Verifica la firma de los tokens entrantes usando la clave pública RSA
-     * y consulta la {@link TokenBlacklist} para rechazar tokens revocados.
-     * Solo necesita la clave pública — nunca expone la privada.
+     * Verifies incoming token signatures with the RSA public key and looks
+     * them up in the {@link TokenBlacklist} to reject revoked ones. Only
+     * needs the public key — the private key never leaves the encoder.
      */
     @Bean
     public ReactiveJwtDecoder jwtDecoder(RsaKeyProperties keys, TokenBlacklist blacklist) {
@@ -87,8 +87,8 @@ public class SecurityConfig {
     }
 
     /**
-     * Firma los tokens salientes usando el par completo (pública + privada).
-     * El {@link JwtEncoder} solo vive en el servidor — nunca sale de él.
+     * Signs outgoing tokens using the full key pair (public + private).
+     * The {@link JwtEncoder} lives only on the server — never leaves it.
      */
     @Bean
     public JwtEncoder jwtEncoder(RsaKeyProperties keys) {
@@ -99,7 +99,7 @@ public class SecurityConfig {
     }
 
     /**
-     * BCrypt con factor de costo 10 (balance seguridad/rendimiento).
+     * BCrypt with a cost factor of 10 (security/performance balance).
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

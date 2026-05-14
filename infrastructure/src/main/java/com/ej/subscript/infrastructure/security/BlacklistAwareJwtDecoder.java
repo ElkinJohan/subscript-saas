@@ -6,14 +6,16 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import reactor.core.publisher.Mono;
 
 /**
- * Decodificador de JWT que rechaza tokens revocados además de los inválidos.
+ * JWT decoder that rejects revoked tokens in addition to cryptographically
+ * invalid ones.
  * <p>
- * Decora un {@link ReactiveJwtDecoder} delegándole la validación criptográfica
- * y agrega un paso adicional: consultar la {@link TokenBlacklist} por el {@code jti}.
- * Si el token está revocado se emite {@link RevokedTokenException}, lo que provoca un 401
- * tanto en el filtro de Spring Security como en el endpoint de refresh, y permite a
- * los handlers de aplicación distinguir el reuso de un token revocado de otros errores
- * de JWT (firma inválida, expirado, etc.).
+ * Wraps a {@link ReactiveJwtDecoder}, delegating signature validation to it
+ * and adding an extra step: looking up the {@code jti} in the
+ * {@link TokenBlacklist}. If the token is revoked it emits a
+ * {@link RevokedTokenException}, which produces a 401 both at the Spring
+ * Security filter and at the refresh endpoint, letting application handlers
+ * distinguish a revoked-token reuse from other JWT errors (invalid
+ * signature, expired, etc.).
  */
 @RequiredArgsConstructor
 public class BlacklistAwareJwtDecoder implements ReactiveJwtDecoder {
