@@ -209,13 +209,6 @@ curl -X PATCH \
 
 ## Caveats / open items
 
-- **No owner-existence check on create.** `ClientUseCase.register` calls
-  `save` directly and trusts the database foreign key. If `ownerId` does
-  not exist in `owners`, the FK constraint rejects the INSERT and surfaces
-  as a 500 from the handler — not the `404` the OpenAPI summary advertises.
-  Tracked for a follow-up: validate owner existence in the use case and
-  map to a clean `404` (or `409` if the FK constraint is reframed as a
-  conflict).
 - **No cedula-uniqueness check.** The OpenAPI summary advertises a `409`
   for "Client cedula already registered for this owner" but
   `ClientUseCase.register` does not enforce it. The use case's own Javadoc

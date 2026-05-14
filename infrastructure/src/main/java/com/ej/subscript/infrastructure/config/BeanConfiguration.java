@@ -22,8 +22,9 @@ public class BeanConfiguration {
     }
 
     @Bean
-    public ClientUseCase clientUseCase(ClientRepository clientRepository) {
-        return new ClientUseCase(clientRepository);
+    public ClientUseCase clientUseCase(ClientRepository clientRepository,
+                                       OwnerRepository ownerRepository) {
+        return new ClientUseCase(clientRepository, ownerRepository);
     }
 
     @Bean

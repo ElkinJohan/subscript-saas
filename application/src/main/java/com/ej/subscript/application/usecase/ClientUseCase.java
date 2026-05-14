@@ -3,6 +3,7 @@ package com.ej.subscript.application.usecase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
 import com.ej.subscript.domain.repository.ClientRepository;
+import com.ej.subscript.domain.repository.OwnerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,16 +17,24 @@ import java.util.UUID;
 public class ClientUseCase {
 
     private final ClientRepository clientRepository;
+    private final OwnerRepository ownerRepository;
 
-    public ClientUseCase(ClientRepository clientRepository) {
+    public ClientUseCase(ClientRepository clientRepository, OwnerRepository ownerRepository) {
         this.clientRepository = clientRepository;
+        this.ownerRepository = ownerRepository;
     }
 
     /**
-     * Registra un nuevo cliente. Sin validación de duplicados — la cédula puede repetirse entre owners.
+     * Registra un nuevo cliente. Valida que el owner exista antes de persistir;
+     * de lo contrario emite 404 (en vez de dejar que la FK constraint rompa el INSERT
+     * y emerja como 500). La cédula puede repetirse entre owners.
      */
     public Mono<Client> register(Client client) {
-        return clientRepository.save(client);
+        return ownerRepository.findById(client.ownerId().toString())
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Owner no encontrado", 404,
+                        "No existe un owner con ID " + client.ownerId())))
+                .flatMap(owner -> clientRepository.save(client));
     }
 
     /**
