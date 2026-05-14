@@ -128,6 +128,16 @@ public class AuthHandler {
                 .then(ServerResponse.noContent().build());
     }
 
+    /**
+     * Genera un par de tokens nuevo y registra el evento de auditoría asociado.
+     * <p>
+     * Envuelto en {@link Mono#defer} para que la generación de los tokens —que
+     * captura {@code Instant.now()} y produce nuevos {@code jti}— ocurra en el
+     * momento de la suscripción, no al construir el {@code Mono}. Esto evita que
+     * operadores upstream que retrasen o aborten la cadena (por ejemplo
+     * {@link #rotateAndIssue}, que blacklistea el refresh viejo primero) emitan
+     * tokens prematuros que después no se usen.
+     */
     private Mono<TokenResponse> auditAndIssue(Owner owner, AuditEventType type) {
         return Mono.defer(() -> {
             TokenResponse tokens = new TokenResponse(
@@ -139,11 +149,34 @@ public class AuthHandler {
         });
     }
 
+    /**
+     * Rota el refresh entrante y emite el par nuevo.
+     * <p>
+     * El orden es deliberado y forma parte del contrato de seguridad:
+     * <b>blacklistear primero, emitir después</b>. Si la emisión del par nuevo
+     * fallara —por un error transitorio del JwtEncoder, por ejemplo— el refresh
+     * viejo queda igualmente revocado, así que un retry del cliente será
+     * detectado como reuso y no como una nueva renovación válida.
+     *
+     * @param oldRefresh JWT del refresh entrante, ya validado y no expirado.
+     * @param owner      Owner referenciado en el {@code sub} del refresh.
+     * @return par de tokens nuevo más el evento {@code AUTH_TOKEN_REFRESHED} ya persistido.
+     */
     private Mono<TokenResponse> rotateAndIssue(Jwt oldRefresh, Owner owner) {
         return tokenBlacklist.blacklist(oldRefresh.getId(), remaining(oldRefresh.getExpiresAt()))
                 .then(auditAndIssue(owner, AuditEventType.AUTH_TOKEN_REFRESHED));
     }
 
+    /**
+     * Maneja el reuso de un refresh token previamente rotado.
+     * <p>
+     * Emite un evento {@link AuditEventType#AUTH_TOKEN_REUSE_DETECTED} con el
+     * {@code jti} y el {@code subject} del token rechazado, y luego propaga un
+     * 401 genérico —idéntico al de cualquier otro fallo de validación de
+     * refresh— para no filtrar al cliente la causa real del rechazo.
+     * El audit ocurre <b>antes</b> de la respuesta, garantizando trazabilidad
+     * incluso si el cliente reintenta inmediatamente.
+     */
     private Mono<Jwt> auditReuseAndReject(RevokedTokenException ex) {
         AuditEvent event = AuditEvent.of(
                 AuditEventType.AUTH_TOKEN_REUSE_DETECTED,

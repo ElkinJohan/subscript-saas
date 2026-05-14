@@ -22,6 +22,14 @@ public class RedisTokenBlacklist implements TokenBlacklist {
 
     private final ReactiveStringRedisTemplate redis;
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Si {@code ttl} es cero o negativo el método retorna sin tocar Redis:
+     * un token ya expirado no necesita estar en la blacklist (Spring Security
+     * lo va a rechazar igual por {@code exp}), y registrarlo con TTL inválido
+     * podría hacer que Redis lo persista indefinidamente.
+     */
     @Override
     public Mono<Void> blacklist(String jti, Duration ttl) {
         if (ttl.isZero() || ttl.isNegative()) {
