@@ -46,4 +46,10 @@ public class ClientRepositoryAdapter implements ClientRepository {
         return r2dbcRepository.findByOwnerId(ownerId)
                 .map(ClientMapper::toDomain);
     }
+
+    @Override
+    public Mono<Client> findByOwnerIdAndCedula(UUID ownerId, String cedula) {
+        return r2dbcRepository.findByOwnerIdAndCedula(ownerId, cedula)
+                .map(ClientMapper::toDomain);
+    }
 }

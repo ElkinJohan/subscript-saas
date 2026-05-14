@@ -25,16 +25,26 @@ public class ClientUseCase {
     }
 
     /**
-     * Registra un nuevo cliente. Valida que el owner exista antes de persistir;
-     * de lo contrario emite 404 (en vez de dejar que la FK constraint rompa el INSERT
-     * y emerja como 500). La cédula puede repetirse entre owners.
+     * Registra un nuevo cliente. Validaciones en orden:
+     * <ol>
+     *     <li>El owner existe (404 en caso contrario, evita que la FK constraint emerja como 500).</li>
+     *     <li>La cédula no está registrada para ese mismo owner (409). La cédula puede repetirse
+     *     entre owners distintos — el UNIQUE constraint es compuesto sobre {@code (owner_id, cedula)}.</li>
+     * </ol>
+     * El UNIQUE constraint en la DB es defense-in-depth: si dos requests concurrentes pasan ambos
+     * el check anterior, la DB rechaza el segundo INSERT.
      */
     public Mono<Client> register(Client client) {
         return ownerRepository.findById(client.ownerId().toString())
                 .switchIfEmpty(Mono.error(new BusinessException(
                         "Owner no encontrado", 404,
                         "No existe un owner con ID " + client.ownerId())))
-                .flatMap(owner -> clientRepository.save(client));
+                .flatMap(owner -> clientRepository.findByOwnerIdAndCedula(client.ownerId(), client.cedula())
+                        .flatMap(existing -> Mono.<Client>error(new BusinessException(
+                                "Cédula ya registrada", 409,
+                                "Ya existe un cliente con la cédula " + client.cedula()
+                                        + " para este owner")))
+                        .switchIfEmpty(clientRepository.save(client)));
     }
 
     /**

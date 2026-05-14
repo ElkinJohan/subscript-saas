@@ -43,6 +43,7 @@ class ClientUseCaseTest {
     @Test
     void shouldRegisterClient() {
         when(ownerRepository.findById(OWNER_ID.toString())).thenReturn(Mono.just(OWNER));
+        when(clientRepository.findByOwnerIdAndCedula(OWNER_ID, ACTIVE_CLIENT.cedula())).thenReturn(Mono.empty());
         when(clientRepository.save(any())).thenReturn(Mono.just(ACTIVE_CLIENT));
 
         StepVerifier.create(clientUseCase.register(ACTIVE_CLIENT))
@@ -56,11 +57,29 @@ class ClientUseCaseTest {
     @Test
     void shouldReturn404WhenRegisteringWithUnknownOwner() {
         when(ownerRepository.findById(OWNER_ID.toString())).thenReturn(Mono.empty());
+        when(clientRepository.findByOwnerIdAndCedula(OWNER_ID, ACTIVE_CLIENT.cedula())).thenReturn(Mono.empty()); // eager chain construction
+        when(clientRepository.save(any())).thenReturn(Mono.just(ACTIVE_CLIENT));                                 // eager chain construction
 
         StepVerifier.create(clientUseCase.register(ACTIVE_CLIENT))
                 .expectErrorSatisfies(ex -> {
                     assertThat(ex).isInstanceOf(BusinessException.class);
                     assertThat(((BusinessException) ex).status()).isEqualTo(404);
+                })
+                .verify();
+    }
+
+    @Test
+    void shouldRejectRegistrationWhenCedulaAlreadyExistsForSameOwner() {
+        when(ownerRepository.findById(OWNER_ID.toString())).thenReturn(Mono.just(OWNER));
+        when(clientRepository.findByOwnerIdAndCedula(OWNER_ID, ACTIVE_CLIENT.cedula())).thenReturn(Mono.just(ACTIVE_CLIENT));
+        when(clientRepository.save(any())).thenReturn(Mono.just(ACTIVE_CLIENT));                                 // eager chain construction
+
+        StepVerifier.create(clientUseCase.register(ACTIVE_CLIENT))
+                .expectErrorSatisfies(ex -> {
+                    assertThat(ex).isInstanceOf(BusinessException.class);
+                    BusinessException be = (BusinessException) ex;
+                    assertThat(be.status()).isEqualTo(409);
+                    assertThat(be.title()).contains("Cédula");
                 })
                 .verify();
     }
