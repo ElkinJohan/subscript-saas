@@ -25,10 +25,16 @@ public class ClientUseCase {
     }
 
     /**
-     * Registra un nuevo cliente. Sin validación de duplicados — la cédula puede repetirse entre owners.
+     * Registra un nuevo cliente. Valida que el owner exista antes de persistir;
+     * de lo contrario emite 404 (en vez de dejar que la FK constraint rompa el INSERT
+     * y emerja como 500). La cédula puede repetirse entre owners.
      */
     public Mono<Client> register(Client client) {
-        return clientRepository.save(client);
+        return ownerRepository.findById(client.ownerId().toString())
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Owner no encontrado", 404,
+                        "No existe un owner con ID " + client.ownerId())))
+                .flatMap(owner -> clientRepository.save(client));
     }
 
     /**
