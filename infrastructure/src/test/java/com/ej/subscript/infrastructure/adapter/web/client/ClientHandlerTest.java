@@ -104,7 +104,8 @@ class ClientHandlerTest {
                 "carlos@test.com", "300", ClientStatus.INACTIVE);
         when(clientUseCase.deactivate(ACTIVE_CLIENT.id())).thenReturn(Mono.just(inactive));
 
-        client.patch().uri("/api/clients/{id}/deactivate", ACTIVE_CLIENT.id())
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate",
+                        OWNER_ID, ACTIVE_CLIENT.id())
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ClientResponse.class)
@@ -118,7 +119,7 @@ class ClientHandlerTest {
                 Mono.error(new BusinessException("Cliente no encontrado", 404, "No existe"))
         );
 
-        client.patch().uri("/api/clients/{id}/deactivate", id)
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate", OWNER_ID, id)
                 .exchange()
                 .expectStatus().isNotFound();
     }

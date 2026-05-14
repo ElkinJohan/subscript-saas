@@ -23,11 +23,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
  *
  * <p>Sigue el patrón establecido por {@code AuthRouter} y {@code OwnerRouter}:
  * routing con {@link RouterFunctions} y metadata {@link RouterOperations}
- * coexistiendo en el mismo archivo. La ruta de creación y listado vive bajo
- * {@code /api/owners/{ownerId}/clients} para que la relación padre-hijo sea
- * explícita en la URL; la desactivación cuelga directamente de
- * {@code /api/clients/{id}} porque es una operación sobre el recurso ya
- * existente y no necesita el ownerId.
+ * coexistiendo en el mismo archivo. Las tres operaciones cuelgan de
+ * {@code /api/owners/{ownerId}/clients/...} para que la relación padre-hijo
+ * sea explícita en la URL — eso permite validar autorización a nivel de fila
+ * (caller owner == path owner) sin necesidad de cargar el recurso primero.
  */
 @Configuration
 public class ClientRouter {
@@ -110,7 +109,7 @@ public class ClientRouter {
                     )
             ),
             @RouterOperation(
-                    path = "/api/clients/{id}/deactivate",
+                    path = "/api/owners/{ownerId}/clients/{clientId}/deactivate",
                     method = RequestMethod.PATCH,
                     beanClass = ClientHandler.class,
                     beanMethod = "deactivate",
@@ -120,11 +119,21 @@ public class ClientRouter {
                             summary = "Mark a client as inactive",
                             description = "Soft deactivation: the client record stays in the "
                                     + "database, but its status flips to INACTIVE so it stops "
-                                    + "showing up as an active customer. Idempotent.",
+                                    + "showing up as an active customer. Idempotent. The "
+                                    + "{ownerId} segment makes the parent-child relation "
+                                    + "explicit and enables row-level authorization on the "
+                                    + "URL itself.",
                             security = @SecurityRequirement(name = "bearerAuth"),
                             parameters = {
                                     @Parameter(
-                                            name = "id",
+                                            name = "ownerId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Owner UUID",
+                                            schema = @Schema(type = "string", format = "uuid")
+                                    ),
+                                    @Parameter(
+                                            name = "clientId",
                                             in = ParameterIn.PATH,
                                             required = true,
                                             description = "Client UUID",
@@ -147,7 +156,7 @@ public class ClientRouter {
         return RouterFunctions.route()
                 .POST("/api/owners/{ownerId}/clients", handler::register)
                 .GET("/api/owners/{ownerId}/clients", handler::findByOwnerId)
-                .PATCH("/api/clients/{id}/deactivate", handler::deactivate)
+                .PATCH("/api/owners/{ownerId}/clients/{clientId}/deactivate", handler::deactivate)
                 .build();
     }
 }

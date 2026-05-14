@@ -65,8 +65,8 @@ persistence adapter → reactive use case → REST endpoint → integration test
   uniqueness enforced at the use case.
 - **Client** — `POST /api/owners/{ownerId}/clients`,
   `GET /api/owners/{ownerId}/clients`,
-  `PATCH /api/clients/{id}/deactivate`. Owner-scoped paths, soft delete,
-  status as a closed enum (`ACTIVE` / `INACTIVE`).
+  `PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`.
+  Owner-scoped paths, soft delete, status as a closed enum (`ACTIVE` / `INACTIVE`).
 
 **Out of v1** — `Plan`, `Subscription`, `Payment` aggregates exist as
 domain sketches in the codebase (records and ports), but have no use

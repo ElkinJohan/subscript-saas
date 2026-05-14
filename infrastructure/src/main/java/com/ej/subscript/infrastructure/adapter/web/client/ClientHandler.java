@@ -66,6 +66,10 @@ public class ClientHandler {
      * Desactiva el Client referenciado en el path: {@code status} pasa a
      * {@code INACTIVE} sin borrar el registro.
      *
+     * <p>El path lleva tanto {@code ownerId} como {@code clientId} para que la
+     * relación padre-hijo sea explícita y la autorización a nivel de fila se
+     * pueda validar contra el token sin tocar la DB.
+     *
      * <p>Idempotente: llamar dos veces deja el Client en el mismo estado.
      * Útil para que clientes sean "archivados" sin perder histórico para
      * reportes o auditoría futura.
@@ -74,7 +78,7 @@ public class ClientHandler {
      *         {@code 401} si el token está ausente o es inválido.
      */
     public Mono<ServerResponse> deactivate(ServerRequest request) {
-        UUID clientId = UUID.fromString(request.pathVariable("id"));
+        UUID clientId = UUID.fromString(request.pathVariable("clientId"));
         return clientUseCase.deactivate(clientId)
                 .map(ClientResponse::from)
                 .flatMap(body -> ServerResponse.ok().bodyValue(body));

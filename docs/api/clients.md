@@ -29,7 +29,7 @@ mutating. The handler/use case never sees an in-place state change.
 
 - [`POST /api/owners/{ownerId}/clients`](#post-apiownersowneridclients) — register a client under an owner
 - [`GET /api/owners/{ownerId}/clients`](#get-apiownersowneridclients) — list every client of an owner
-- [`PATCH /api/clients/{id}/deactivate`](#patch-apiclientsiddeactivate) — soft-deactivate a client
+- [`PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`](#patch-apiownersowneridclientsclientiddeactivate) — soft-deactivate a client
 
 ---
 
@@ -141,7 +141,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
 
 ---
 
-## `PATCH /api/clients/{id}/deactivate`
+## `PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`
 
 Soft-deactivate the Client: status flips from `ACTIVE` to `INACTIVE`. The row
 stays in the database — this is not a delete. Calling deactivate again on an
@@ -151,9 +151,10 @@ already-inactive client is idempotent (returns the same record).
 
 ### Path parameters
 
-| Name | Type | Description  |
-|------|------|--------------|
-| `id` | UUID | Client id    |
+| Name       | Type | Description |
+|------------|------|-------------|
+| `ownerId`  | UUID | Owner id    |
+| `clientId` | UUID | Client id   |
 
 ### Responses
 
