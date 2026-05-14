@@ -36,6 +36,12 @@ public class OwnerRepositoryAdapter implements OwnerRepository {
     }
 
     @Override
+    public Mono<Owner> findByNit(String nit) {
+        return r2dbcRepository.findByNit(nit)
+                .map(OwnerMapper::toDomain);
+    }
+
+    @Override
     public Mono<Void> deleteById(String id) {
         return r2dbcRepository.deleteById(java.util.UUID.fromString(id));
     }

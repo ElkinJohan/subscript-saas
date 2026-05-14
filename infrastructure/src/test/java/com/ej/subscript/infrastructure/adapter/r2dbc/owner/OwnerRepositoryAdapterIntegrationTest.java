@@ -98,4 +98,32 @@ class OwnerRepositoryAdapterIntegrationTest {
                 .expectError()
                 .verify();
     }
+
+    @Test
+    void shouldFindOwnerByNit() {
+        Owner owner = new Owner(
+                UUID.randomUUID(), "900555", "Elena", "elena@gym.com",
+                "304", "ElenaFit", 7, "$2a$10$hash"
+        );
+
+        StepVerifier.create(adapter.save(owner).then(adapter.findByNit("900555")))
+                .assertNext(found -> assertThat(found.email()).isEqualTo("elena@gym.com"))
+                .verifyComplete();
+    }
+
+    @Test
+    void shouldRejectDuplicateNitAtDatabaseLevel() {
+        Owner first = new Owner(
+                UUID.randomUUID(), "900666", "Felipe", "felipe@gym.com",
+                "305", "FelipeFit", 0, "$2a$10$hash"
+        );
+        Owner duplicate = new Owner(
+                UUID.randomUUID(), "900666", "Gabriela", "gaby@gym.com",
+                "306", "GabyFit", 0, "$2a$10$hash"
+        );
+
+        StepVerifier.create(adapter.save(first).then(adapter.save(duplicate)))
+                .expectError()
+                .verify();
+    }
 }

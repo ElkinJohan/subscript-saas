@@ -18,14 +18,24 @@ public class OwnerUseCase {
     }
 
     /**
-     * Registra un nuevo Owner garantizando unicidad de email.
+     * Registra un nuevo Owner garantizando unicidad de email y NIT.
+     * Si ambos están duplicados, el conflicto de email gana (se evalúa primero).
+     * El UNIQUE constraint en la DB es defense-in-depth — el chequeo a nivel use case
+     * existe para devolver un 409 limpio en vez de dejar que el constraint violation
+     * emerja como un 500.
      */
     public Mono<Owner> register(Owner owner) {
         return ownerRepository.findByEmail(owner.email())
                 .flatMap(existing -> Mono.<Owner>error(new BusinessException(
                         "Email ya registrado", 409,
                         "Ya existe un owner con el email " + owner.email())))
-                .switchIfEmpty(ownerRepository.save(owner));
+                .switchIfEmpty(
+                        ownerRepository.findByNit(owner.nit())
+                                .flatMap(existing -> Mono.<Owner>error(new BusinessException(
+                                        "NIT ya registrado", 409,
+                                        "Ya existe un owner con el NIT " + owner.nit())))
+                                .switchIfEmpty(ownerRepository.save(owner))
+                );
     }
 
     /**
