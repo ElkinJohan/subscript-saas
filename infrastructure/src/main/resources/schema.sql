@@ -22,7 +22,8 @@ CREATE TABLE clients (
     name     VARCHAR(100) NOT NULL,
     email    VARCHAR(150) NOT NULL,
     phone    VARCHAR(20),
-    status   VARCHAR(20)  NOT NULL
+    status   VARCHAR(20)  NOT NULL,
+    CONSTRAINT uk_clients_owner_cedula UNIQUE (owner_id, cedula)
 );
 
 CREATE TABLE plans (
