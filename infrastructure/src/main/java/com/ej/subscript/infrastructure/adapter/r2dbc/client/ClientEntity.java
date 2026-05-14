@@ -12,6 +12,20 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
+/**
+ * Representación R2DBC del Client para la tabla {@code clients}.
+ *
+ * <p>Implementa {@link Persistable} para que Spring Data sepa cuándo emitir
+ * INSERT vs UPDATE. El UUID del agregado se genera en el dominio antes de
+ * persistir, así que sin el flag {@code isNew} R2DBC asumiría que la fila ya
+ * existe y haría UPDATE en un INSERT. {@code ClientMapper} setea el flag
+ * según la operación: {@code true} en {@link ClientMapper#toEntity} (save),
+ * {@code false} en {@link ClientMapper#toEntityForUpdate} (update).
+ *
+ * <p>El {@code status} se mapea como {@link String}, no como el enum
+ * {@code ClientStatus}, para evitar acoplar el schema de la base al tipo
+ * Java; la traducción enum↔string vive en el mapper.
+ */
 @Table("clients")
 @Getter
 @Setter

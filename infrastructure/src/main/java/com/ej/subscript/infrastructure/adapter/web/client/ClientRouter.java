@@ -18,6 +18,17 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+/**
+ * Define las rutas funcionales del agregado Client y publica su contrato OpenAPI.
+ *
+ * <p>Sigue el patrón establecido por {@code AuthRouter} y {@code OwnerRouter}:
+ * routing con {@link RouterFunctions} y metadata {@link RouterOperations}
+ * coexistiendo en el mismo archivo. La ruta de creación y listado vive bajo
+ * {@code /api/owners/{ownerId}/clients} para que la relación padre-hijo sea
+ * explícita en la URL; la desactivación cuelga directamente de
+ * {@code /api/clients/{id}} porque es una operación sobre el recurso ya
+ * existente y no necesita el ownerId.
+ */
 @Configuration
 public class ClientRouter {
 
