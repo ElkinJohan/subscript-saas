@@ -3,6 +3,7 @@ package com.ej.subscript.application.usecase;
 import com.ej.subscript.domain.exception.BusinessException;
 import com.ej.subscript.domain.model.Client;
 import com.ej.subscript.domain.repository.ClientRepository;
+import com.ej.subscript.domain.repository.OwnerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,9 +17,11 @@ import java.util.UUID;
 public class ClientUseCase {
 
     private final ClientRepository clientRepository;
+    private final OwnerRepository ownerRepository;
 
-    public ClientUseCase(ClientRepository clientRepository) {
+    public ClientUseCase(ClientRepository clientRepository, OwnerRepository ownerRepository) {
         this.clientRepository = clientRepository;
+        this.ownerRepository = ownerRepository;
     }
 
     /**
