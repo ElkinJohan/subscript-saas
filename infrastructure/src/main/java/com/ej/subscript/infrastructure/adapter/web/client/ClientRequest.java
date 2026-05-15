@@ -4,16 +4,16 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * Cuerpo del request {@code POST /api/owners/{ownerId}/clients}.
+ * Request body for {@code POST /api/owners/{ownerId}/clients}.
  *
- * <p>El {@code ownerId} no viaja en el body — se toma del path en el handler.
- * Eso evita ambigüedad sobre quién es el padre del Client y simplifica futuras
- * reglas de autorización a nivel de fila.
+ * <p>The {@code ownerId} is taken from the path — not from the body — so
+ * the parent of the Client is unambiguous and row-level authorization
+ * rules are easier to reason about.
  *
- * @param cedula identificación del cliente (cédula/tax id). Obligatoria y no en blanco.
- * @param name   nombre del cliente. Obligatorio y no en blanco.
- * @param email  correo del cliente. Obligatorio y con formato válido.
- * @param phone  teléfono opcional, formato libre.
+ * @param cedula client identification (cedula / tax id). Required, non-blank.
+ * @param name   client name. Required, non-blank.
+ * @param email  client email. Required and well-formed.
+ * @param phone  optional phone, free form.
  */
 public record ClientRequest(
         @NotBlank String cedula,

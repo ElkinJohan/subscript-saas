@@ -6,23 +6,24 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Cuerpo del request {@code POST /api/owners}.
+ * Request body for {@code POST /api/owners}.
  *
- * <p>La validación de schema (Bean Validation) corre antes de que se construya el
- * agregado de dominio: si una restricción falla el handler emite {@code 400}.
- * Las invariantes adicionales del dominio se aplican después en el compact
- * constructor de {@link com.ej.subscript.domain.model.Owner}.
+ * <p>Bean Validation runs before the domain aggregate is constructed: if a
+ * constraint fails the handler emits {@code 400}. Additional domain
+ * invariants run afterwards in the compact constructor of
+ * {@link com.ej.subscript.domain.model.Owner}.
  *
- * @param nit             NIT/Tax ID del negocio. Obligatorio y no en blanco.
- * @param name            nombre del owner. Obligatorio y no en blanco.
- * @param email           correo, login identifier. Obligatorio y con formato válido.
- * @param phone           teléfono opcional, formato libre.
- * @param businessName    nombre comercial opcional.
- * @param gracePeriodDays días de gracia que el owner concede a sus clientes
- *                        antes de suspenderles la suscripción. Debe ser {@code >= 0}.
- * @param password        contraseña en claro, mínimo 8 caracteres. Se hashea con
- *                        BCrypt en el handler antes de construir el {@code Owner}
- *                        — nunca se persiste ni se loggea.
+ * @param nit             business NIT / tax id. Required, non-blank.
+ * @param name            owner name. Required, non-blank.
+ * @param email           login identifier. Required and well-formed.
+ * @param phone           optional phone, free form.
+ * @param businessName    optional commercial name.
+ * @param gracePeriodDays grace period the owner grants to its clients
+ *                        before suspending their subscriptions. Must be
+ *                        {@code >= 0}.
+ * @param password        plaintext password, at least 8 characters. Hashed
+ *                        with BCrypt in the handler before constructing
+ *                        the {@code Owner} — never persisted or logged.
  */
 public record OwnerRequest(
         @NotBlank String nit,
@@ -31,6 +32,6 @@ public record OwnerRequest(
         String phone,
         String businessName,
         @Min(0) int gracePeriodDays,
-        @NotBlank @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres") String password
+        @NotBlank @Size(min = 8, message = "Password must be at least 8 characters long") String password
 ) {
 }

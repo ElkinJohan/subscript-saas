@@ -6,15 +6,15 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * Carga el par de claves RSA desde los archivos PEM definidos en application.yml.
+ * Loads the RSA key pair from the PEM files declared in application.yml.
  *
- * <p>Spring Security registra automáticamente un {@code ConversionService} que convierte
- * la ruta {@code classpath:keys/*.pem} al objeto Java correspondiente
- * ({@link RSAPublicKey} / {@link RSAPrivateKey}) cuando
- * {@code spring-security-oauth2-resource-server} está en el classpath.
+ * <p>Spring Security registers a {@code ConversionService} that turns the
+ * {@code classpath:keys/*.pem} location into the matching Java object
+ * ({@link RSAPublicKey} / {@link RSAPrivateKey}) when
+ * {@code spring-security-oauth2-resource-server} is on the classpath.
  *
- * <p>La clave privada firma los tokens (solo el servidor la conoce).
- * La clave pública verifica las firmas (puede distribuirse).
+ * <p>The private key signs tokens (kept secret by the server). The public
+ * key verifies signatures (safe to distribute).
  */
 @ConfigurationProperties(prefix = "rsa")
 public record RsaKeyProperties(RSAPrivateKey privateKey, RSAPublicKey publicKey) {

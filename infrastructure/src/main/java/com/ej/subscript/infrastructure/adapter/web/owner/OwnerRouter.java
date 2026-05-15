@@ -18,16 +18,17 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 /**
- * Define las rutas funcionales del agregado Owner y publica su contrato OpenAPI.
+ * Defines the functional routes for the Owner aggregate and publishes its
+ * OpenAPI contract.
  *
- * <p>Sigue el mismo patrón que {@code AuthRouter}: routing con
- * {@link RouterFunctions} (estilo WebFlux funcional, sin {@code @RestController})
- * y metadata {@link RouterOperations} consumida por springdoc para generar el
- * documento OpenAPI 3 y la UI de Swagger.
+ * <p>Follows the same pattern as {@code AuthRouter}: routing via
+ * {@link RouterFunctions} (functional WebFlux, no {@code @RestController})
+ * and {@link RouterOperations} metadata consumed by springdoc to generate
+ * the OpenAPI 3 document and the Swagger UI.
  *
- * <p>Mantener la documentación junto a la ruta evita que se desincronicen:
- * agregar o renombrar un endpoint actualiza la documentación en el mismo
- * archivo donde se cambia el binding HTTP.
+ * <p>Keeping the documentation next to the route prevents drift: adding or
+ * renaming an endpoint updates the docs in the same file where the HTTP
+ * binding changes.
  */
 @Configuration
 public class OwnerRouter {

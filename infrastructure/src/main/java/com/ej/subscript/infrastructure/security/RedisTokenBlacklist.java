@@ -8,10 +8,11 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 /**
- * Implementación del {@link TokenBlacklist} respaldada por Redis.
+ * Redis-backed implementation of {@link TokenBlacklist}.
  * <p>
- * Cada {@code jti} se almacena con la clave {@code blacklist:<jti>} y TTL igual
- * al tiempo restante del token. Redis se encarga de la limpieza automática.
+ * Each {@code jti} is stored under the key {@code blacklist:<jti>} with a
+ * TTL equal to the token's remaining lifetime. Redis handles eviction
+ * automatically.
  */
 @Component
 @RequiredArgsConstructor
@@ -25,10 +26,10 @@ public class RedisTokenBlacklist implements TokenBlacklist {
     /**
      * {@inheritDoc}
      *
-     * <p>Si {@code ttl} es cero o negativo el método retorna sin tocar Redis:
-     * un token ya expirado no necesita estar en la blacklist (Spring Security
-     * lo va a rechazar igual por {@code exp}), y registrarlo con TTL inválido
-     * podría hacer que Redis lo persista indefinidamente.
+     * <p>If {@code ttl} is zero or negative the method returns without
+     * touching Redis: a token that already expired does not need to be
+     * blacklisted (Spring Security rejects it via {@code exp} anyway), and
+     * persisting it with an invalid TTL could make Redis keep it forever.
      */
     @Override
     public Mono<Void> blacklist(String jti, Duration ttl) {

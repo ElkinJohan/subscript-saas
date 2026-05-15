@@ -79,7 +79,7 @@ class ClientUseCaseTest {
                     assertThat(ex).isInstanceOf(BusinessException.class);
                     BusinessException be = (BusinessException) ex;
                     assertThat(be.status()).isEqualTo(409);
-                    assertThat(be.title()).contains("Cédula");
+                    assertThat(be.title()).contains("Cedula");
                 })
                 .verify();
     }

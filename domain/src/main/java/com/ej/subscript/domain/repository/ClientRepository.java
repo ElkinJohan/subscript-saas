@@ -7,39 +7,39 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Puerto de salida para la persistencia de {@link Client}.
+ * Outbound port for persisting {@link Client}.
  *
- * <p>{@code save} y {@code update} están separados deliberadamente:
- * R2DBC determina INSERT vs UPDATE según si el ID es nulo. Como el dominio
- * genera el UUID antes de persistir, ambos métodos señalan la intención
- * explícita en lugar de depender de heurísticas de la capa de datos.
+ * <p>{@code save} and {@code update} are intentionally separate: R2DBC
+ * decides INSERT vs UPDATE based on whether the id is null. Since the
+ * domain generates the UUID before persisting, both methods signal the
+ * explicit intent instead of relying on data-layer heuristics.
  */
 public interface ClientRepository {
 
     /**
-     * Inserta un nuevo Client (INSERT).
+     * Inserts a new Client (INSERT).
      */
     Mono<Client> save(Client client);
 
     /**
-     * Actualiza un Client existente (UPDATE).
+     * Updates an existing Client (UPDATE).
      */
     Mono<Client> update(Client client);
 
     /**
-     * Busca por ID; emite vacío si no existe.
+     * Looks up by id; emits empty when absent.
      */
     Mono<Client> findById(UUID id);
 
     /**
-     * Retorna todos los clientes del owner dado.
+     * Returns every client belonging to the given owner.
      */
     Flux<Client> findByOwnerId(UUID ownerId);
 
     /**
-     * Busca un cliente por la combinación (ownerId, cedula); emite vacío si no existe.
-     * Usado para validar unicidad por owner antes del save —la cédula puede repetirse
-     * entre owners pero no dentro del mismo owner.
+     * Looks up a client by the {@code (ownerId, cedula)} pair; emits empty
+     * when absent. Used to validate per-owner uniqueness before save —
+     * a cedula can repeat across owners but never within the same owner.
      */
     Mono<Client> findByOwnerIdAndCedula(UUID ownerId, String cedula);
 }

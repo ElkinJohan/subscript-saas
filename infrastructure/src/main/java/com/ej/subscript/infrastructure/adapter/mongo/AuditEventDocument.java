@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Representación Mongo del {@code AuditEvent} de dominio.
- * Usar una colección llamada {@code audit_events}.
+ * Mongo representation of the domain {@code AuditEvent}.
+ * Persisted to a collection named {@code audit_events}.
  */
 @Document(collection = "audit_events")
 @Getter

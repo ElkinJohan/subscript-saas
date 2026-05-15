@@ -125,7 +125,7 @@ class ClientHandlerTest {
     void shouldReturn404WhenDeactivatingNonExistentClient() {
         UUID id = UUID.randomUUID();
         when(clientUseCase.deactivate(id)).thenReturn(
-                Mono.error(new BusinessException("Cliente no encontrado", 404, "No existe"))
+                Mono.error(new BusinessException("Client not found", 404, "Not found"))
         );
 
         client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate", OWNER_ID, id)

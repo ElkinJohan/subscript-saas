@@ -4,12 +4,14 @@ import lombok.Getter;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 
 /**
- * Señaliza que un JWT criptográficamente válido fue rechazado por estar en la blacklist.
+ * Signals that a cryptographically valid JWT was rejected because it sits
+ * in the blacklist.
  * <p>
- * Se distingue de {@link BadJwtException} para permitir que los handlers de aplicación
- * traten el reuso de un token revocado (señal de seguridad) de forma diferente que un
- * token con firma inválida o expirado (error común). El handler de {@code /refresh}
- * usa esta distinción para emitir un evento de auditoría {@code AUTH_TOKEN_REUSE_DETECTED}.
+ * Distinguished from {@link BadJwtException} so application handlers can
+ * treat a revoked-token reuse (a security signal) differently from a token
+ * with an invalid signature or an expired one (ordinary errors). The
+ * {@code /refresh} handler relies on this distinction to emit an
+ * {@code AUTH_TOKEN_REUSE_DETECTED} audit event.
  */
 @Getter
 public class RevokedTokenException extends BadJwtException {
@@ -18,7 +20,7 @@ public class RevokedTokenException extends BadJwtException {
     private final String subject;
 
     public RevokedTokenException(String jti, String subject) {
-        super("Token revocado");
+        super("Revoked token");
         this.jti = jti;
         this.subject = subject;
     }

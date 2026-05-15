@@ -5,9 +5,9 @@ import com.ej.subscript.domain.exception.BusinessException;
 import java.util.UUID;
 
 /**
- * Cliente registrado por un Owner en la plataforma.
- * Representa a la persona que compra y mantiene suscripciones
- * (e.g., el socio de un gimnasio, el cliente de una barbería).
+ * Client registered by an Owner on the platform.
+ * Represents the person who buys and keeps subscriptions
+ * (e.g. a gym member, a barber-shop customer).
  */
 public record Client(
         UUID id,
@@ -28,33 +28,33 @@ public record Client(
      */
     public Client {
         if (ownerId == null)
-            throw new BusinessException("Datos inválidos", 422, "El ownerId es obligatorio");
+            throw new BusinessException("Invalid input", 422, "OwnerId is required");
         if (cedula == null || cedula.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "La cédula es obligatoria");
+            throw new BusinessException("Invalid input", 422, "Cedula is required");
         if (name == null || name.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "El nombre es obligatorio");
+            throw new BusinessException("Invalid input", 422, "Name is required");
         if (email == null || email.isBlank())
-            throw new BusinessException("Datos inválidos", 422, "El email es obligatorio");
+            throw new BusinessException("Invalid input", 422, "Email is required");
         if (status == null)
-            throw new BusinessException("Datos inválidos", 422, "El estado es obligatorio");
+            throw new BusinessException("Invalid input", 422, "Status is required");
     }
 
     /**
-     * Crea un nuevo cliente con estado ACTIVE.
+     * Creates a new client in ACTIVE state.
      */
     public static Client create(UUID ownerId, String cedula, String name, String email, String phone) {
         return new Client(UUID.randomUUID(), ownerId, cedula, name, email, phone, ClientStatus.ACTIVE);
     }
 
     /**
-     * Retorna una nueva instancia con estado INACTIVE. No muta el receptor.
+     * Returns a new instance in INACTIVE state. Does not mutate the receiver.
      */
     public Client deactivate() {
         return new Client(id, ownerId, cedula, name, email, phone, ClientStatus.INACTIVE);
     }
 
     /**
-     * Retorna una nueva instancia con estado ACTIVE.
+     * Returns a new instance in ACTIVE state.
      */
     public Client activate() {
         return new Client(id, ownerId, cedula, name, email, phone, ClientStatus.ACTIVE);

@@ -5,16 +5,16 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Evento de auditoría que captura una acción significativa del sistema.
+ * Audit event capturing a significant action in the system.
  * <p>
- * Los eventos se almacenan en MongoDB (no en Postgres) por dos razones:
- * volumen alto y forma libre — el campo {@code data} cambia según el tipo
- * y un schema relacional sería costoso de evolucionar.
+ * Events are stored in MongoDB (not Postgres) for two reasons: high volume
+ * and free-form shape — the {@code data} field varies by event type and a
+ * relational schema would be expensive to evolve.
  *
- * @param ownerId identificador del Owner involucrado, o {@code null} cuando
- *                el evento ocurre sin sesión (por ejemplo, login fallido).
- * @param data    información adicional del evento (email intentado, IP, etc.).
- *                Forma libre por diseño.
+ * @param ownerId id of the involved Owner, or {@code null} when the event
+ *                happens without a session (e.g. failed login).
+ * @param data    additional event payload (attempted email, IP, etc.).
+ *                Free-form by design.
  */
 public record AuditEvent(
         String id,
@@ -25,7 +25,7 @@ public record AuditEvent(
 ) {
 
     /**
-     * Crea un evento nuevo con id aleatorio y timestamp actual.
+     * Creates a new event with a random id and the current timestamp.
      */
     public static AuditEvent of(AuditEventType type, UUID ownerId, Map<String, Object> data) {
         return new AuditEvent(

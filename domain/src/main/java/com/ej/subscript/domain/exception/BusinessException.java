@@ -1,16 +1,16 @@
 package com.ej.subscript.domain.exception;
 
 /**
- * Excepción que representa una violación de regla de negocio conocida y esperada.
- * Siempre mapea a un código HTTP 4xx (400, 401, 404, 409, 422...).
+ * Represents a known, expected business-rule violation. Always maps to an
+ * HTTP 4xx status code (400, 401, 404, 409, 422...).
  *
- * <p>El {@code GlobalExceptionHandler} escribe el {@code status} directamente
- * en la respuesta HTTP y expone {@code title} + {@code detail} al cliente.
- * No se loguea como error — es un flujo normal del dominio.
+ * <p>The {@code GlobalExceptionHandler} writes the {@code status} directly
+ * to the HTTP response and exposes {@code title} + {@code detail} to the
+ * client. It is not logged as an error — it represents a normal domain flow.
  *
- * @param title  nombre corto del error (ej. "Plan no encontrado")
- * @param status código HTTP correspondiente (ej. 404)
- * @param detail mensaje descriptivo para el cliente
+ * @param title  short error name (e.g. "Plan not found")
+ * @param status matching HTTP status code (e.g. 404)
+ * @param detail descriptive message intended for the client
  */
 public class BusinessException extends DomainException {
 
