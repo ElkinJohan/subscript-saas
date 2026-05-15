@@ -1,6 +1,6 @@
 # Clients API
 
-Endpoints to register, list and deactivate Clients. A Client is an end
+Endpoints to register, list, deactivate and re-activate Clients. A Client is an end
 customer of an Owner's business — a gym member, an academy student, a
 clinic patient. Every Client belongs to exactly one Owner: the relationship
 is encoded in the URL (`/api/owners/{ownerId}/clients`) for create/list and
@@ -19,7 +19,7 @@ entry point; the Client aggregate sits behind the authenticated boundary.
 | `name`     | string  | required, non-blank          | personal name |
 | `email`    | string  | required, valid email        | uniqueness is **not** enforced (see Caveats) |
 | `phone`    | string  | optional                     | free-form |
-| `status`   | enum    | `ACTIVE` \| `INACTIVE`       | always `ACTIVE` on creation; flipped by `/deactivate` |
+| `status`   | enum    | `ACTIVE` \| `INACTIVE`       | always `ACTIVE` on creation; flipped by `/deactivate` and back by `/activate` |
 
 The Client model is intentionally a record with three transition methods —
 `create`, `activate`, `deactivate` — that return new instances rather than
@@ -30,6 +30,7 @@ mutating. The handler/use case never sees an in-place state change.
 - [`POST /api/owners/{ownerId}/clients`](#post-apiownersowneridclients) — register a client under an owner
 - [`GET /api/owners/{ownerId}/clients`](#get-apiownersowneridclients) — list every client of an owner
 - [`PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`](#patch-apiownersowneridclientsclientiddeactivate) — soft-deactivate a client
+- [`PATCH /api/owners/{ownerId}/clients/{clientId}/activate`](#patch-apiownersowneridclientsclientidactivate) — re-activate a client
 
 ---
 
@@ -187,9 +188,9 @@ the `ownerId` in the URL.
 
 ```json
 {
-  "title": "Cliente no encontrado",
+  "title": "Client not found",
   "status": 404,
-  "detail": "No existe un cliente con ID 11111111-..."
+  "detail": "No client found with id 11111111-..."
 }
 ```
 
@@ -198,7 +199,64 @@ the `ownerId` in the URL.
 ```bash
 curl -X PATCH \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
-  http://localhost:8080/api/clients/11111111-.../deactivate
+  http://localhost:8080/api/owners/8c1b3f2e-.../clients/11111111-.../deactivate
+```
+
+---
+
+## `PATCH /api/owners/{ownerId}/clients/{clientId}/activate`
+
+Re-activate the Client: status flips from `INACTIVE` back to `ACTIVE`. The
+client shows up again on listings and becomes eligible for new subscriptions.
+Calling activate again on an already-active client is idempotent (returns
+the same record).
+
+**Authentication:** required.
+
+### Path parameters
+
+| Name       | Type | Description |
+|------------|------|-------------|
+| `ownerId`  | UUID | Owner id    |
+| `clientId` | UUID | Client id   |
+
+### Responses
+
+**`200 OK`**
+
+```json
+{
+  "id": "11111111-...",
+  "ownerId": "8c1b3f2e-...",
+  "cedula": "1010101010",
+  "name": "Juan Cliente",
+  "email": "juan@example.com",
+  "phone": "+57 311 111 1111",
+  "status": "ACTIVE"
+}
+```
+
+**`401 Unauthorized`** — access token missing, expired or revoked.
+
+**`403 Forbidden`** — the caller's `ownerId` (from the JWT) does not match
+the `ownerId` in the URL.
+
+**`404 Not Found`** — no Client with that id.
+
+```json
+{
+  "title": "Client not found",
+  "status": 404,
+  "detail": "No client found with id 11111111-..."
+}
+```
+
+### Example
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
+  http://localhost:8080/api/owners/8c1b3f2e-.../clients/11111111-.../activate
 ```
 
 ---
@@ -211,7 +269,8 @@ curl -X PATCH \
   about for authorization rules ("does the caller own this ownerId?")
   when row-level access checks land.
 - **Soft delete only.** `/deactivate` flips status; no record is removed.
-  This preserves history for audit and reporting.
+  `/activate` is the inverse operation when a client comes back. This
+  preserves history for audit and reporting.
 - **Defense in depth.** Bean Validation enforces request schema (`400`) and
   the `Client` record's compact constructor enforces invariants (`422`).
   Either layer alone is enough to keep an invalid Client out of the
@@ -222,10 +281,10 @@ curl -X PATCH \
 Row-level access control is enforced on every endpoint of this aggregate.
 The caller's `ownerId` (read from the JWT `sub` claim) must match the
 `ownerId` segment of the URL — otherwise the response is `403 Forbidden`.
-This means owner A cannot list, register, or deactivate clients that
-belong to owner B even if they have a valid token of their own.
+This means owner A cannot list, register, deactivate or activate clients
+that belong to owner B even if they have a valid token of their own.
 
 The comparison is intentionally on the URL (not on the body) so the
 authorization check can run **before** the request body is parsed or
-before any database round-trip — which is also why `deactivate` carries
-the `ownerId` in the path.
+before any database round-trip — which is also why `deactivate` and
+`activate` both carry the `ownerId` in the path.
