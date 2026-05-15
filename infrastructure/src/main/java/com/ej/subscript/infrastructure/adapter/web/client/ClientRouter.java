@@ -158,6 +158,51 @@ public class ClientRouter {
                                             content = @Content)
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/owners/{ownerId}/clients/{clientId}/activate",
+                    method = RequestMethod.PATCH,
+                    beanClass = ClientHandler.class,
+                    beanMethod = "activate",
+                    operation = @Operation(
+                            operationId = "activateClient",
+                            tags = {"Client"},
+                            summary = "Mark a client as active",
+                            description = "Mirror of deactivate: flips status back to ACTIVE "
+                                    + "so the client shows up again on listings and is eligible "
+                                    + "for new subscriptions. Idempotent. The {ownerId} segment "
+                                    + "makes the parent-child relation explicit and enables "
+                                    + "row-level authorization on the URL itself.",
+                            security = @SecurityRequirement(name = "bearerAuth"),
+                            parameters = {
+                                    @Parameter(
+                                            name = "ownerId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Owner UUID",
+                                            schema = @Schema(type = "string", format = "uuid")
+                                    ),
+                                    @Parameter(
+                                            name = "clientId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "Client UUID",
+                                            schema = @Schema(type = "string", format = "uuid")
+                                    )
+                            },
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Client activated",
+                                            content = @Content(schema = @Schema(implementation = ClientResponse.class))),
+                                    @ApiResponse(responseCode = "401",
+                                            description = "Missing or invalid access token",
+                                            content = @Content),
+                                    @ApiResponse(responseCode = "403",
+                                            description = "The caller's owner id does not match the path's ownerId",
+                                            content = @Content),
+                                    @ApiResponse(responseCode = "404", description = "Client not found",
+                                            content = @Content)
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> clientRoutes(ClientHandler handler) {
@@ -165,6 +210,7 @@ public class ClientRouter {
                 .POST("/api/owners/{ownerId}/clients", handler::register)
                 .GET("/api/owners/{ownerId}/clients", handler::findByOwnerId)
                 .PATCH("/api/owners/{ownerId}/clients/{clientId}/deactivate", handler::deactivate)
+                .PATCH("/api/owners/{ownerId}/clients/{clientId}/activate", handler::activate)
                 .build();
     }
 }
