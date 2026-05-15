@@ -18,9 +18,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Handler funcional para los endpoints de Client.
- * Opera como adaptador de entrada (Hexagonal): traduce el request HTTP
- * al modelo de dominio y delega al {@link ClientUseCase}.
+ * Functional handler for the Client endpoints.
+ * Acts as an inbound adapter (Hexagonal): translates the HTTP request
+ * into the domain model and delegates to {@link ClientUseCase}.
  */
 @Component
 @RequiredArgsConstructor
@@ -31,17 +31,17 @@ public class ClientHandler {
     private final AuthenticatedOwnerResolver authenticatedOwnerResolver;
 
     /**
-     * Registra un Client nuevo bajo el {@code ownerId} del path.
+     * Registers a new Client under the path's {@code ownerId}.
      *
-     * <p>El {@code ownerId} se toma del path —no del body— para que la relación
-     * padre-hijo sea inequívoca y la regla de autorización a nivel de fila
-     * (caller del token == owner del recurso) se evalúe contra ese path sin
-     * tener que parsear el body.
+     * <p>The {@code ownerId} comes from the path — not from the body — so
+     * the parent-child relation is unambiguous and the row-level
+     * authorization rule (token caller == resource owner) is evaluated
+     * against the path without parsing the body.
      *
-     * @return {@code 201 Created} con el Client persistido en estado {@code ACTIVE}.
-     *         Errores: {@code 400} validación de schema, {@code 401} sin token,
-     *         {@code 403} el caller no es dueño del owner del path, {@code 422}
-     *         invariantes de dominio.
+     * @return {@code 201 Created} with the persisted Client in
+     *         {@code ACTIVE} state. Errors: {@code 400} schema validation,
+     *         {@code 401} missing token, {@code 403} caller does not own
+     *         the path's owner, {@code 422} domain invariants.
      */
     public Mono<ServerResponse> register(ServerRequest request) {
         return requireOwnerMatchesCaller(request)
@@ -54,14 +54,15 @@ public class ClientHandler {
     }
 
     /**
-     * Lista todos los clientes del Owner (activos e inactivos).
+     * Lists every client of the Owner (active and inactive).
      *
-     * <p>Stream-friendly: la respuesta es un array JSON construido a partir del
-     * {@link reactor.core.publisher.Flux} del use case. Si el owner no tiene
-     * clientes, la respuesta es un array vacío con {@code 200 OK}, no un 404.
+     * <p>Stream-friendly: the response is a JSON array built from the use
+     * case's {@link reactor.core.publisher.Flux}. If the owner has no
+     * clients, the response is an empty array with {@code 200 OK}, not a
+     * 404.
      *
-     * @return {@code 200 OK} con la lista; {@code 401} sin token; {@code 403}
-     *         el caller no es dueño del owner del path.
+     * @return {@code 200 OK} with the list; {@code 401} missing token;
+     *         {@code 403} caller does not own the path's owner.
      */
     public Mono<ServerResponse> findByOwnerId(ServerRequest request) {
         return requireOwnerMatchesCaller(request)
@@ -71,20 +72,20 @@ public class ClientHandler {
     }
 
     /**
-     * Desactiva el Client referenciado en el path: {@code status} pasa a
-     * {@code INACTIVE} sin borrar el registro.
+     * Deactivates the Client referenced by the path: {@code status} flips
+     * to {@code INACTIVE} without deleting the record.
      *
-     * <p>El path lleva tanto {@code ownerId} como {@code clientId} para que la
-     * relación padre-hijo sea explícita y la autorización a nivel de fila se
-     * pueda validar contra el token sin tocar la DB.
+     * <p>The path carries both {@code ownerId} and {@code clientId} so the
+     * parent-child relation is explicit and row-level authorization can
+     * be validated against the token without touching the DB.
      *
-     * <p>Idempotente: llamar dos veces deja el Client en el mismo estado.
-     * Útil para que clientes sean "archivados" sin perder histórico para
-     * reportes o auditoría futura.
+     * <p>Idempotent: calling twice leaves the Client in the same state.
+     * Useful so clients can be "archived" without losing history for
+     * later reports or audit.
      *
-     * @return {@code 200 OK} con el Client actualizado; {@code 401} sin token;
-     *         {@code 403} el caller no es dueño del owner del path;
-     *         {@code 404} si el client no existe.
+     * @return {@code 200 OK} with the updated Client; {@code 401} missing
+     *         token; {@code 403} caller does not own the path's owner;
+     *         {@code 404} when the client does not exist.
      */
     public Mono<ServerResponse> deactivate(ServerRequest request) {
         return requireOwnerMatchesCaller(request)
@@ -97,13 +98,13 @@ public class ClientHandler {
     }
 
     /**
-     * Authorization gate: valida que el {@code ownerId} del path coincida con
-     * el {@code ownerId} del caller (extraído del JWT por
-     * {@link AuthenticatedOwnerResolver}). Devuelve el ownerId validado para
-     * que el flujo posterior lo use sin reparsear el path.
+     * Authorization gate: ensures the path's {@code ownerId} matches the
+     * caller's {@code ownerId} (extracted from the JWT by
+     * {@link AuthenticatedOwnerResolver}). Returns the validated ownerId
+     * so the rest of the flow can reuse it without reparsing the path.
      *
-     * @return el ownerId validado o un error {@code 403 Forbidden} si no
-     *         coincide.
+     * @return the validated ownerId, or a {@code 403 Forbidden} error
+     *         when there is a mismatch.
      */
     private Mono<UUID> requireOwnerMatchesCaller(ServerRequest request) {
         UUID pathOwnerId = UUID.fromString(request.pathVariable("ownerId"));
@@ -111,8 +112,8 @@ public class ClientHandler {
                 .flatMap(callerOwnerId -> callerOwnerId.equals(pathOwnerId)
                         ? Mono.just(pathOwnerId)
                         : Mono.error(new BusinessException(
-                                "Acceso denegado", 403,
-                                "El owner del token no coincide con el del recurso")));
+                                "Access denied", 403,
+                                "Token owner does not match the resource owner")));
     }
 
     private <T> Mono<T> validate(T body) {
@@ -121,6 +122,6 @@ public class ClientHandler {
         String detail = violations.stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining(", "));
-        return Mono.error(new BusinessException("Datos inválidos", 400, detail));
+        return Mono.error(new BusinessException("Invalid input", 400, detail));
     }
 }

@@ -10,9 +10,10 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Orquesta los casos de uso del Client.
- * Clase Java pura — sin anotaciones de Spring — para mantener la capa de aplicación
- * independiente del framework. El bean se registra manualmente en {@code BeanConfiguration}.
+ * Orchestrates Client use cases.
+ * Plain Java class — no Spring annotations — to keep the application layer
+ * decoupled from the framework. The bean is registered manually in
+ * {@code BeanConfiguration}.
  */
 public class ClientUseCase {
 
@@ -25,42 +26,44 @@ public class ClientUseCase {
     }
 
     /**
-     * Registra un nuevo cliente. Validaciones en orden:
+     * Registers a new client. Validations, in order:
      * <ol>
-     *     <li>El owner existe (404 en caso contrario, evita que la FK constraint emerja como 500).</li>
-     *     <li>La cédula no está registrada para ese mismo owner (409). La cédula puede repetirse
-     *     entre owners distintos — el UNIQUE constraint es compuesto sobre {@code (owner_id, cedula)}.</li>
+     *     <li>The owner exists (404 otherwise, to prevent the FK constraint
+     *     from surfacing as a 500).</li>
+     *     <li>The cedula is not already registered for that same owner
+     *     (409). A cedula can repeat across different owners — the UNIQUE
+     *     constraint is compound over {@code (owner_id, cedula)}.</li>
      * </ol>
-     * El UNIQUE constraint en la DB es defense-in-depth: si dos requests concurrentes pasan ambos
-     * el check anterior, la DB rechaza el segundo INSERT.
+     * The DB UNIQUE constraint is defense in depth: if two concurrent
+     * requests both pass the prior check, the DB rejects the second INSERT.
      */
     public Mono<Client> register(Client client) {
         return ownerRepository.findById(client.ownerId().toString())
                 .switchIfEmpty(Mono.error(new BusinessException(
-                        "Owner no encontrado", 404,
-                        "No existe un owner con ID " + client.ownerId())))
+                        "Owner not found", 404,
+                        "No owner found with id " + client.ownerId())))
                 .flatMap(owner -> clientRepository.findByOwnerIdAndCedula(client.ownerId(), client.cedula())
                         .flatMap(existing -> Mono.<Client>error(new BusinessException(
-                                "Cédula ya registrada", 409,
-                                "Ya existe un cliente con la cédula " + client.cedula()
-                                        + " para este owner")))
+                                "Cedula already registered", 409,
+                                "A client with cedula " + client.cedula()
+                                        + " is already registered for this owner")))
                         .switchIfEmpty(clientRepository.save(client)));
     }
 
     /**
-     * Desactiva el cliente o emite 404 si no existe.
+     * Deactivates the client, or emits 404 when it does not exist.
      */
     public Mono<Client> deactivate(UUID clientId) {
         return clientRepository.findById(clientId)
                 .switchIfEmpty(Mono.error(new BusinessException(
-                        "Cliente no encontrado", 404,
-                        "No existe un cliente con ID " + clientId)))
+                        "Client not found", 404,
+                        "No client found with id " + clientId)))
                 .map(Client::deactivate)
                 .flatMap(clientRepository::update);
     }
 
     /**
-     * Retorna todos los clientes del owner dado.
+     * Returns every client of the given owner.
      */
     public Flux<Client> findByOwnerId(UUID ownerId) {
         return clientRepository.findByOwnerId(ownerId);

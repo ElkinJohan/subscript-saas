@@ -19,14 +19,16 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 /**
- * Define las rutas funcionales del agregado Client y publica su contrato OpenAPI.
+ * Defines the functional routes for the Client aggregate and publishes its
+ * OpenAPI contract.
  *
- * <p>Sigue el patrón establecido por {@code AuthRouter} y {@code OwnerRouter}:
- * routing con {@link RouterFunctions} y metadata {@link RouterOperations}
- * coexistiendo en el mismo archivo. Las tres operaciones cuelgan de
- * {@code /api/owners/{ownerId}/clients/...} para que la relación padre-hijo
- * sea explícita en la URL — eso permite validar autorización a nivel de fila
- * (caller owner == path owner) sin necesidad de cargar el recurso primero.
+ * <p>Follows the same pattern as {@code AuthRouter} and {@code OwnerRouter}:
+ * routing via {@link RouterFunctions} and {@link RouterOperations}
+ * metadata coexisting in the same file. All three operations hang off
+ * {@code /api/owners/{ownerId}/clients/...} so the parent-child relation
+ * is explicit in the URL — which is what makes row-level authorization
+ * (caller owner == path owner) possible without loading the resource
+ * first.
  */
 @Configuration
 public class ClientRouter {

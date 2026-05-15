@@ -1,18 +1,18 @@
 package com.ej.subscript.domain.model;
 
 /**
- * Estado de un Client en el negocio del Owner.
+ * State of a Client within the Owner's business.
  * <p>
- * Modelado como enum cerrado para garantizar exhaustividad: agregar un
- * estado nuevo requiere modificar este tipo y propagar los efectos en el
- * dominio (transiciones permitidas) y en la persistencia (mapeo a la
- * columna {@code status}). Es deliberadamente más restrictivo que un
- * boolean activo/inactivo para dejar espacio a estados futuros como
- * {@code PENDING_VERIFICATION} o {@code SUSPENDED} sin un cambio de tipo.
+ * Modeled as a closed enum to guarantee exhaustiveness: adding a new state
+ * requires changing this type and propagating the effects across the
+ * domain (allowed transitions) and persistence (mapping to the
+ * {@code status} column). Deliberately stricter than an active/inactive
+ * boolean, leaving room for future states like
+ * {@code PENDING_VERIFICATION} or {@code SUSPENDED} without a type change.
  */
 public enum ClientStatus {
-    /** Cliente vigente — visible en listados y elegible para suscripciones. */
+    /** Active client — visible in listings and eligible for subscriptions. */
     ACTIVE,
-    /** Cliente desactivado por soft delete; queda en la base pero no se opera con él. */
+    /** Soft-deleted client; stays in the database but is no longer operated on. */
     INACTIVE
 }

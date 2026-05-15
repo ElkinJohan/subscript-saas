@@ -5,12 +5,12 @@ import com.ej.subscript.domain.model.Client;
 import java.util.UUID;
 
 /**
- * DTO de presentación del Client.
+ * Presentation DTO for the Client.
  *
- * <p>Refleja el modelo de dominio pero proyecta el {@code ClientStatus} como
- * {@link String} para que la API tenga un schema estable: si en el futuro se
- * agrega un valor al enum, los consumidores existentes siguen leyendo un
- * string sin romperse, en lugar de fallar al deserializar un valor desconocido.
+ * <p>Mirrors the domain model but projects {@code ClientStatus} as a
+ * {@link String} to keep the API schema stable: if a new enum value is
+ * added later, existing consumers keep reading a string and do not break
+ * on deserialization of an unknown value.
  */
 public record ClientResponse(
         UUID id,
@@ -22,8 +22,8 @@ public record ClientResponse(
         String status
 ) {
     /**
-     * Proyecta un {@link Client} de dominio al DTO de presentación,
-     * convirtiendo el enum {@code status} a su nombre string.
+     * Projects a domain {@link Client} into the presentation DTO,
+     * converting the {@code status} enum to its name string.
      */
     static ClientResponse from(Client client) {
         return new ClientResponse(

@@ -17,17 +17,17 @@ import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
 /**
- * Manejador global de excepciones para WebFlux.
+ * Global exception handler for WebFlux.
  *
- * <p>{@code @Order(-2)} es obligatorio: Spring registra su propio handler de errores
- * en el orden -1. Si este handler tuviera un orden mayor (número más alto), nunca
- * se ejecutaría porque el de Spring tomaría primero la excepción.
+ * <p>{@code @Order(-2)} is mandatory: Spring registers its own error handler
+ * at order -1. If this handler had a higher order (larger number) it would
+ * never run, because Spring's would catch the exception first.
  *
- * <p>Política de logging:
+ * <p>Logging policy:
  * <ul>
- *   <li>{@link BusinessException} — no se loguea (flujo esperado del negocio)</li>
- *   <li>{@link TechnicalException} — {@code ERROR} con stack trace</li>
- *   <li>Excepciones no mapeadas — {@code ERROR} con método + path</li>
+ *   <li>{@link BusinessException} — not logged (expected business flow)</li>
+ *   <li>{@link TechnicalException} — {@code ERROR} with stack trace</li>
+ *   <li>Unmapped exceptions — {@code ERROR} with method + path</li>
  * </ul>
  */
 @Slf4j
@@ -54,23 +54,23 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
             case TechnicalException te -> {
                 log.error("Technical error — {}: {}", te.title(), te.detail(), te);
                 response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                yield new ErrorResponse(te.title(), 500, "Error interno del servidor");
+                yield new ErrorResponse(te.title(), 500, "Internal server error");
             }
             case DomainException de -> {
                 log.error("Unhandled domain exception", de);
                 response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                yield new ErrorResponse("Error de dominio", 500, "Error interno del servidor");
+                yield new ErrorResponse("Domain error", 500, "Internal server error");
             }
             case IllegalArgumentException iae -> {
                 log.warn("Invalid argument: {}", iae.getMessage());
                 response.setStatusCode(HttpStatus.BAD_REQUEST);
-                yield new ErrorResponse("Datos inválidos", 400, iae.getMessage());
+                yield new ErrorResponse("Invalid input", 400, iae.getMessage());
             }
             default -> {
                 log.error("Unexpected error on {} {}", exchange.getRequest().getMethod(),
                         exchange.getRequest().getPath(), ex);
                 response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                yield new ErrorResponse("Error interno", 500, "Ocurrió un error inesperado");
+                yield new ErrorResponse("Internal error", 500, "An unexpected error occurred");
             }
         };
 
