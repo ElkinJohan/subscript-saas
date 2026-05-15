@@ -397,4 +397,4 @@ more aggregates. Concretely:
 
 ## License
 
-MIT (file pending).
+MIT — see [LICENSE](LICENSE).
