@@ -65,14 +65,19 @@ persistence adapter → reactive use case → REST endpoint → integration test
   uniqueness enforced at the use case.
 - **Client** — `POST /api/owners/{ownerId}/clients`,
   `GET /api/owners/{ownerId}/clients`,
-  `PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`.
-  Owner-scoped paths, soft delete, status as a closed enum (`ACTIVE` / `INACTIVE`).
+  `PATCH /api/owners/{ownerId}/clients/{clientId}/deactivate`,
+  `PATCH /api/owners/{ownerId}/clients/{clientId}/activate`.
+  Owner-scoped paths, soft delete with symmetric re-activation, status as a
+  closed enum (`ACTIVE` / `INACTIVE`).
 
-**Out of v1** — `Plan`, `Subscription`, `Payment` aggregates exist as
-domain sketches in the codebase (records and ports), but have no use
-cases, no adapters, no endpoints, and no tests. They will be promoted as
-the project evolves; the v1 line is drawn deliberately at the bounded
-context that demonstrates the architecture without inflating scope.
+**Out of v1 by design** — `Plan`, `Subscription`, `Payment` aggregates
+exist as domain sketches in the codebase (records and ports), but have no
+use cases, no adapters, no endpoints, and no tests, and they are not on
+the roadmap. The v1 line is drawn deliberately at the bounded context
+that already demonstrates the architecture; the project's depth from here
+on goes into the **operational lifecycle** around v1 (migrations,
+metrics, IaC, event streaming, k8s) rather than into more domain
+features.
 
 ---
 
@@ -333,8 +338,8 @@ In-depth Markdown documentation lives under [`docs/api/`](docs/api/):
 - [`docs/api/owners.md`](docs/api/owners.md) — registration, lookup,
   domain-model table, security and consistency notes
 - [`docs/api/clients.md`](docs/api/clients.md) — register under an owner,
-  list per owner, soft deactivation, caveats around aspirational vs
-  enforced validations
+  list per owner, soft deactivation and symmetric re-activation, caveats
+  around aspirational vs enforced validations
 
 ---
 
@@ -368,22 +373,25 @@ the transactional Postgres model. Events are defined in
 
 ## Roadmap
 
-### Closing v1 (Auth + Owner + Client)
+### ✅ v1 closed (Auth + Owner + Client)
 
 - [x] Translate remaining Spanish Javadocs and exception messages to English
 - [x] Expose a symmetric `PATCH .../activate` endpoint to mirror the
   existing `deactivate`
 
-### Beyond v1 (senior breadth)
+### Beyond v1 (operational depth, not more domain)
 
-- [ ] Promote `Plan`, `Subscription`, `Payment` aggregates with full coverage
-- [ ] Reactive plan cache in Redis
+The project's next direction is breadth around the v1 bounded context, not
+more aggregates. Concretely:
+
+- [ ] Reactive plan cache in Redis (still inside the v1 surface)
 - [ ] Login rate limiting with a Redis token-bucket on `AUTH_LOGIN_FAILED`
 - [ ] Metrics (Micrometer + Prometheus)
 - [ ] Database migrations (Flyway / Liquibase for R2DBC)
 - [ ] Infrastructure as Code (Terraform or Pulumi)
-- [ ] Domain events on Kafka (auth events, async audit, subscription state changes)
+- [ ] Domain events on Kafka (auth events, async audit)
 - [ ] Kubernetes manifests + Helm chart for local cluster deployment
+- [ ] Service mesh (Istio) on top of the k8s deployment
 
 ---
 
