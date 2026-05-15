@@ -98,6 +98,29 @@ public class ClientHandler {
     }
 
     /**
+     * Activates the Client referenced by the path: {@code status} flips
+     * back to {@code ACTIVE} so the client shows up again on listings and
+     * is eligible for new subscriptions.
+     *
+     * <p>Mirror of {@link #deactivate(ServerRequest)}: same nested URL,
+     * same row-level authorization rule, same idempotent behavior
+     * (calling twice leaves the Client in {@code ACTIVE}).
+     *
+     * @return {@code 200 OK} with the updated Client; {@code 401} missing
+     *         token; {@code 403} caller does not own the path's owner;
+     *         {@code 404} when the client does not exist.
+     */
+    public Mono<ServerResponse> activate(ServerRequest request) {
+        return requireOwnerMatchesCaller(request)
+                .flatMap(ownerId -> {
+                    UUID clientId = UUID.fromString(request.pathVariable("clientId"));
+                    return clientUseCase.activate(clientId)
+                            .map(ClientResponse::from)
+                            .flatMap(body -> ServerResponse.ok().bodyValue(body));
+                });
+    }
+
+    /**
      * Authorization gate: ensures the path's {@code ownerId} matches the
      * caller's {@code ownerId} (extracted from the JWT by
      * {@link AuthenticatedOwnerResolver}). Returns the validated ownerId

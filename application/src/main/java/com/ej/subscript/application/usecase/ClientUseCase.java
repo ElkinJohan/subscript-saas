@@ -63,6 +63,19 @@ public class ClientUseCase {
     }
 
     /**
+     * Activates the client, or emits 404 when it does not exist.
+     * Idempotent: an already-ACTIVE client stays ACTIVE.
+     */
+    public Mono<Client> activate(UUID clientId) {
+        return clientRepository.findById(clientId)
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        "Client not found", 404,
+                        "No client found with id " + clientId)))
+                .map(Client::activate)
+                .flatMap(clientRepository::update);
+    }
+
+    /**
      * Returns every client of the given owner.
      */
     public Flux<Client> findByOwnerId(UUID ownerId) {

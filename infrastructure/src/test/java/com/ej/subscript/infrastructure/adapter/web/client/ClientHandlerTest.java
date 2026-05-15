@@ -134,6 +134,30 @@ class ClientHandlerTest {
     }
 
     @Test
+    void shouldActivateClientAndReturn200() {
+        when(clientUseCase.activate(ACTIVE_CLIENT.id())).thenReturn(Mono.just(ACTIVE_CLIENT));
+
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/activate",
+                        OWNER_ID, ACTIVE_CLIENT.id())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ClientResponse.class)
+                .value(response -> assertThat(response.status()).isEqualTo("ACTIVE"));
+    }
+
+    @Test
+    void shouldReturn404WhenActivatingNonExistentClient() {
+        UUID id = UUID.randomUUID();
+        when(clientUseCase.activate(id)).thenReturn(
+                Mono.error(new BusinessException("Client not found", 404, "Not found"))
+        );
+
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/activate", OWNER_ID, id)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
     void shouldReturn403WhenRegisteringClientForDifferentOwner() {
         UUID otherOwnerId = UUID.randomUUID();
         // caller is OWNER_ID (default mock) but path targets otherOwnerId
@@ -158,6 +182,16 @@ class ClientHandlerTest {
         UUID otherOwnerId = UUID.randomUUID();
 
         client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/deactivate",
+                        otherOwnerId, ACTIVE_CLIENT.id())
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    void shouldReturn403WhenActivatingClientOfDifferentOwner() {
+        UUID otherOwnerId = UUID.randomUUID();
+
+        client.patch().uri("/api/owners/{ownerId}/clients/{clientId}/activate",
                         otherOwnerId, ACTIVE_CLIENT.id())
                 .exchange()
                 .expectStatus().isForbidden();

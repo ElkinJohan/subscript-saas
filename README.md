@@ -370,10 +370,9 @@ the transactional Postgres model. Events are defined in
 
 ### Closing v1 (Auth + Owner + Client)
 
-- [ ] Translate remaining Spanish Javadocs and exception messages to English
-- [ ] Expose a symmetric `PATCH .../activate` endpoint to mirror the
-  existing `deactivate` (the domain already supports it; only the route
-  is missing)
+- [x] Translate remaining Spanish Javadocs and exception messages to English
+- [x] Expose a symmetric `PATCH .../activate` endpoint to mirror the
+  existing `deactivate`
 
 ### Beyond v1 (senior breadth)
 
